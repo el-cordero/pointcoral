@@ -1,0 +1,9 @@
+^\.git$
+^\.gitignore$
+^\.Rproj\.user$
+^pointcoral\.Rproj$
+^dev-notes$
+^data-raw$
+^LICENSE\.md$
+^README\.Rmd$
+^\.DS_Store$
