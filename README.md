@@ -187,9 +187,8 @@ The package uses this distinction:
   a crosswalk, not from the bare `.cpc` point rows.
 - `clean_label`: the standardized analysis label. By default this is the same
   as `full_label`.
-- `label_class`: the subclass/type vocabulary from the inspected
-  `clean_transect_raw.py` workflow, such as `subcategory`, `artifact`, or
-  `disease_or_condition`.
+- `label_class`: an optional subclass/type field, such as `subcategory`,
+  `artifact`, or `disease_or_condition`.
 - `major_category`: the ecological major class, such as `CORAL (C)`,
   `SPONGES (S)`, `PEYSSONNELIACEAE`, or
   `SAND, PAVEMENT, RUBBLE (SPR)`.
@@ -209,11 +208,9 @@ LOBO     LOBO      Lobophora variegata       subcategory MACROALGAE (MA)
 S        S         Sand                      subcategory SAND, PAVEMENT, RUBBLE (SPR)
 ```
 
-The bundled example crosswalk was generated from the existing scripts and uses
-the major-class/subclass vocabulary in `_existing/clean_transect_raw.py`. It is
-a starting example, not a universal ontology. You do not need it for the bare
-workflow, but you should review it against your own CPCe codefile before using
-standardized classes for final analysis.
+The bundled example crosswalk is a starting example, not a universal ontology.
+You do not need it for the bare workflow, but you should review it against your
+own CPCe codefile before using standardized classes for final analysis.
 
 ## Quick start with bundled example data
 
@@ -368,7 +365,7 @@ names(points)
 ```
 
 `read_cpce_file()` currently parses the text `.cpc` structure used by the
-sample files and original scripts:
+bundled sample files:
 
 1. Header row with CPCe codefile path and image path.
 2. Four ROI vertex rows.
@@ -468,7 +465,8 @@ include_in_ml
 notes
 ```
 
-The reader also recognizes common synonyms from older scripts, including
+The reader also recognizes common synonyms from existing crosswalk tables,
+including
 `label_clean`, `major_class`, and `keep`.
 
 ### 6. Optional: check the crosswalk before joining
@@ -807,16 +805,13 @@ Tested now:
 - Generic point-like CSV/TSV/XLS/XLSX exports with recognizable coordinate and
   label columns.
 
-Inspected from the original scripts but not claimed as fully tested yet:
+Planned or project-specific formats that need representative test fixtures
+before the package should claim full support:
 
-- Project-specific CPCe Excel "Data Summary" workbooks from
-  `_existing/clean_transect_raw.py`.
-- Permanent transect workbook layouts from the original external data folders.
+- CPCe Excel "Data Summary" workbooks.
+- Permanent transect workbook layouts.
 - Dense prediction CSV expansion for pseudo-mask growth.
-- Full image/mask tiling for SegFormer training.
-
-Those workflows need representative fixture files before the package should
-claim full support.
+- Full image/mask tiling for semantic-segmentation training.
 
 ## Core tidy point table
 
@@ -911,12 +906,6 @@ ml_points <- make_ml_points(points_split, class_col = "ml_class")
 write_ml_points_csv(ml_points, "outputs/ml")
 extract_point_patches(points_split, "images", "outputs/patches")
 ```
-
-## Development notes
-
-Original scripts are preserved in `_existing/`. The package refactors tested
-logic into small R functions and documents ambiguous parts in
-`dev-notes/workflow_inventory.md`.
 
 The package author/maintainer is Elvin Cordero
 <elvin.cordero@seamountgeo.com>.

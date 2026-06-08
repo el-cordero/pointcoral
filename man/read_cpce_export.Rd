@@ -16,6 +16,6 @@ A tidy point table when point-like columns are present.
 Reads generic CPCe-like point exports from CSV, TSV, XLS, or XLSX files,
 cleans column names, and maps common coordinate/label columns to the
 pointcoral tidy point schema. Project-specific ecological "Data Summary"
-workbooks are not fully translated yet because no representative workbook
-fixtures were present in this workspace.
+workbooks are not fully translated yet because representative workbook
+fixtures are not bundled with the package.
 }

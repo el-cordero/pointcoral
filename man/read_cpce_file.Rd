@@ -13,10 +13,10 @@ read_cpce_file(path)
 A tidy point table.
 }
 \description{
-Reads the text \code{.cpc} format handled by the original pointcoral scripts:
-header row, four ROI vertices, point count, point coordinate rows, and point
-label rows. If an image with the same basename is present next to the \code{.cpc}
-file, image dimensions are read and \code{x_px}/\code{y_px} are calculated.
+Reads the tested text \code{.cpc} format used by the bundled examples: header row,
+four ROI vertices, point count, point coordinate rows, and point label rows.
+If an image with the same basename is present next to the \code{.cpc} file, image
+dimensions are read and \code{x_px}/\code{y_px} are calculated.
 }
 \examples{
 cpc <- system.file("extdata", "HIW_158_W_U-1.cpc", package = "pointcoral")

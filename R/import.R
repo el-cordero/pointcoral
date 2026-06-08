@@ -70,10 +70,10 @@ convert_cpce_coords <- function(points,
 
 #' Read one CPCe `.cpc` file
 #'
-#' Reads the text `.cpc` format handled by the original pointcoral scripts:
-#' header row, four ROI vertices, point count, point coordinate rows, and point
-#' label rows. If an image with the same basename is present next to the `.cpc`
-#' file, image dimensions are read and `x_px`/`y_px` are calculated.
+#' Reads the tested text `.cpc` format used by the bundled examples: header row,
+#' four ROI vertices, point count, point coordinate rows, and point label rows.
+#' If an image with the same basename is present next to the `.cpc` file, image
+#' dimensions are read and `x_px`/`y_px` are calculated.
 #'
 #' @param path Path to a `.cpc` file.
 #'
@@ -134,8 +134,9 @@ read_cpce_file <- function(path) {
   label_lines <- lines[seq.int(7L + n_points, 6L + (2L * n_points))]
   labels <- purrr::map_dfr(label_lines, function(line) {
     vals <- pc_parse_csv_line(line)
-    # TODO: The original scripts only used field 2 as the CPCe label. Field 3
-    # is usually "Notes" in the samples, and field 4 is an empty note value.
+    # TODO: CPCe label rows can contain optional note fields after the label.
+    # The bundled samples use field 2 as the label, field 3 as a note type,
+    # and field 4 as the note value.
     tibble::tibble(
       point_id = suppressWarnings(as.integer(vals[1])),
       raw_code = vals[2] %||% NA_character_,
@@ -149,8 +150,9 @@ read_cpce_file <- function(path) {
   sibling_image <- pc_find_sibling_image(path)
   image_info <- pc_get_image_info(sibling_image)
 
-  # TODO: CPCe header dimensions and ROI extents are both available. Existing
-  # scripts scale by ROI maxima, so pointcoral preserves that behavior here.
+  # TODO: CPCe header dimensions and ROI extents are both available. The bundled
+  # sample geometry is most consistent with scaling by ROI maxima, so
+  # pointcoral uses that behavior here.
   cpce_width <- max(roi$roi_x, na.rm = TRUE)
   cpce_height <- max(roi$roi_y, na.rm = TRUE)
   if (!is.finite(cpce_width)) cpce_width <- cpce_header_width
@@ -203,8 +205,8 @@ read_cpce_file <- function(path) {
 #' Reads generic CPCe-like point exports from CSV, TSV, XLS, or XLSX files,
 #' cleans column names, and maps common coordinate/label columns to the
 #' pointcoral tidy point schema. Project-specific ecological "Data Summary"
-#' workbooks are not fully translated yet because no representative workbook
-#' fixtures were present in this workspace.
+#' workbooks are not fully translated yet because representative workbook
+#' fixtures are not bundled with the package.
 #'
 #' @param path Path to a CSV, TSV, XLS, or XLSX export.
 #'

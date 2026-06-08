@@ -1,12 +1,11 @@
 # Build the bundled example crosswalk.
 #
 # This table keeps raw CPCe labels as the original short codes from `.cpc`
-# files and maps them to full species/type labels plus the `major_class` and
-# `label_class` vocabulary used in `_existing/clean_transect_raw.py`.
+# files and maps them to full species/type labels plus a practical example
+# benthic classification vocabulary.
 #
-# The original CPCe codefile referenced inside the sample `.cpc` files was not
-# present in the workspace, so users should still review this example against
-# their own CPCe codefile and project-specific crosswalk.
+# Users should review this example against their own CPCe codefile and
+# project-specific label system before using it for final analysis.
 
 library(tibble)
 library(readr)
@@ -169,7 +168,7 @@ crosswalk$include_in_analysis <- TRUE
 crosswalk$include_in_ml <- TRUE
 crosswalk$color_hex <- unname(class_colors[crosswalk$major_category])
 crosswalk$notes <- paste(
-  "Example mapping aligned to _existing/clean_transect_raw.py major_class/label_class vocabulary.",
+  "Bundled example mapping for CPCe short labels and a benthic classification vocabulary.",
   "Raw labels remain CPCe short codes; clean/full labels are species or benthic type names.",
   "Review against your project CPCe codefile before analysis."
 )
