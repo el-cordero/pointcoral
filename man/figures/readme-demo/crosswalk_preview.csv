@@ -1,0 +1,10 @@
+raw_label,full_label,label_class,major_category,class_id
+AA,Agaricia,subcategory,CORAL (C),0
+SS,Siderastrea siderea,subcategory,CORAL (C),0
+SPO,Sponge,subcategory,SPONGES (S),2
+LOBO,Lobophora variegata,subcategory,MACROALGAE (MA),4
+PEYS,Peyssonnelia,subcategory,PEYSSONNELIACEAE,5
+PEFL,Peyssonnelia flavescens,subcategory,PEYSSONNELIACEAE,5
+CALG,Coralline algae,subcategory,CORALLINE ALGAE (CA),7
+P,Pavement,subcategory,"SAND, PAVEMENT, RUBBLE (SPR)",8
+S,Sand,subcategory,"SAND, PAVEMENT, RUBBLE (SPR)",8

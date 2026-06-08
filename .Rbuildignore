@@ -4,6 +4,7 @@
 ^pointcoral\.Rproj$
 ^dev-notes$
 ^data-raw$
+^rstudio-workflows$
 ^LICENSE\.md$
 ^README\.Rmd$
 ^\.DS_Store$

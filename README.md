@@ -1,5 +1,9 @@
 # pointcoral
 
+<p align="center">
+  <img src="man/figures/logo.png" alt="pointcoral logo" width="260">
+</p>
+
 `pointcoral` is a local, open-source R package for CPCe/photoquadrat
 point-count workflows. It imports CPCe point annotations, matches those points
 to source images, standardizes raw short labels with a flexible crosswalk,
@@ -18,6 +22,85 @@ classes and subclasses used for analysis.
 cloud APIs, Python, or any closed platform. It is built to run fully on your own
 computer with your own files.
 
+## What this looks like
+
+The package starts with CPCe files and reef images, then produces clean tables,
+summary graphics, QC images, and ML-ready outputs. The examples below are built
+from the two bundled sample `.cpc` files and matching sample images included in
+this repository.
+
+### 1. Raw CPCe point labels become readable biological labels
+
+CPCe stores short codes. `pointcoral` keeps those short codes but joins them to
+the full label and ecological class you define in a crosswalk.
+
+| Raw CPCe label | Full label | Subclass | Major class | Class ID |
+|---|---|---|---|---:|
+| `SPO` | Sponge | subcategory | SPONGES (S) | 2 |
+| `CALG` | Coralline algae | subcategory | CORALLINE ALGAE (CA) | 7 |
+| `PEYS` | Peyssonnelia | subcategory | PEYSSONNELIACEAE | 5 |
+| `PEFL` | Peyssonnelia flavescens | subcategory | PEYSSONNELIACEAE | 5 |
+| `LOBO` | Lobophora variegata | subcategory | MACROALGAE (MA) | 4 |
+| `S` | Sand | subcategory | SAND, PAVEMENT, RUBBLE (SPR) | 8 |
+| `P` | Pavement | subcategory | SAND, PAVEMENT, RUBBLE (SPR) | 8 |
+| `AA` | Agaricia | subcategory | CORAL (C) | 0 |
+| `SS` | Siderastrea siderea | subcategory | CORAL (C) | 0 |
+
+### 2. Imported points become a tidy table
+
+Each CPCe point is converted into a row with image identity, pixel coordinates,
+the original raw label, the full label, and the ecological class.
+
+| Image | Point | x | y | Raw | Full label | Major class | Class ID |
+|---|---:|---:|---:|---|---|---|---:|
+| HIW_158_W_U-1 | 1 | 65 | 38 | `SPO` | Sponge | SPONGES (S) | 2 |
+| HIW_158_W_U-1 | 2 | 23 | 362 | `S` | Sand | SAND, PAVEMENT, RUBBLE (SPR) | 8 |
+| HIW_158_W_U-1 | 3 | 89 | 557 | `CALG` | Coralline algae | CORALLINE ALGAE (CA) | 7 |
+| HIW_158_W_U-1 | 4 | 233 | 682 | `SPO` | Sponge | SPONGES (S) | 2 |
+| HIW_158_W_U-1 | 7 | 8 | 1226 | `PEYS` | Peyssonnelia | PEYSSONNELIACEAE | 5 |
+| HIW_158_W_U-1 | 10 | 61 | 1827 | `LOBO` | Lobophora variegata | MACROALGAE (MA) | 4 |
+
+### 3. Percent-cover summaries are created automatically
+
+This figure summarizes the two bundled sample images. The numbers are computed
+directly from CPCe point counts.
+
+![Sample percent cover summary](man/figures/sample-cover-summary.png)
+
+The same results are also written as CSV tables. For example, image-level output
+looks like this:
+
+| Site | Image | Major class | Points | Total points | Percent |
+|---|---|---|---:|---:|---:|
+| Hole in the Wall | HIW_158_W_U-1 | CORAL (C) | 5 | 100 | 5 |
+| Hole in the Wall | HIW_158_W_U-1 | CORALLINE ALGAE (CA) | 18 | 100 | 18 |
+| Hole in the Wall | HIW_158_W_U-1 | MACROALGAE (MA) | 11 | 100 | 11 |
+| Hole in the Wall | HIW_158_W_U-1 | PEYSSONNELIACEAE | 16 | 100 | 16 |
+| Hole in the Wall | HIW_158_W_U-1 | SAND, PAVEMENT, RUBBLE (SPR) | 23 | 100 | 23 |
+| Hole in the Wall | HIW_158_W_U-1 | SPONGES (S) | 27 | 100 | 27 |
+
+### 4. QC overlays show whether points landed in the right place
+
+The package writes annotated images so you can inspect CPCe point placement and
+labels before trusting summaries or ML exports.
+
+![Sample QC overlay](man/figures/sample-qc-overlay.jpg)
+
+### 5. ML patch datasets can be made from the same points
+
+Each point can become an image-centered crop. These patches can be used for
+patch classification, active learning, review workflows, or as weak labels for
+model development.
+
+![Sample point-centered patches](man/figures/sample-patch-contact-sheet.jpg)
+
+### 6. Sparse masks are weak segmentation labels
+
+Sparse masks only label a small disk around each CPCe point. The pale background
+is `ignore_index`, meaning it is not treated as a dense annotation.
+
+![Sample sparse mask preview](man/figures/sample-sparse-mask-preview.png)
+
 ## Installation
 
 Install from GitHub:
@@ -32,6 +115,27 @@ Load the package:
 ```r
 library(pointcoral)
 ```
+
+## RStudio testing folder
+
+If you are working from the local `PointCoralPackage` folder, there is a
+ready-to-use RStudio helper folder outside the package directory:
+
+```text
+PointCoralPackage/
+  pointcoral/
+  pointcoral-rstudio-workflows/
+```
+
+Open `pointcoral-rstudio-workflows/` in RStudio and run:
+
+1. `00_build_install_pointcoral.R`
+2. `01_run_sample_data.R`
+3. `pointcoral_rstudio_walkthrough.Rmd`
+4. Copy `02_run_my_data_template.R` and edit the paths for your own data.
+
+The same helper files are mirrored in `rstudio-workflows/` in this GitHub repo
+so they stay synced, but that folder is excluded from R package builds.
 
 ## What pointcoral expects
 
