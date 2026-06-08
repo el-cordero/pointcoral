@@ -49,6 +49,31 @@ test_that("crosswalk reading, checking, and standardization work", {
   expect_equal(clean$ml_class[clean$raw_code == "SPO"][1], "SPONGES (S)")
 })
 
+test_that("CPCe output raw tabs are extracted with image names and major categories", {
+  raw_tabs <- read_cpce_output_raw_tabs(
+    system.file("extdata", "pointcoral_example_cpce_output_raw_tabs.xlsx", package = "pointcoral")
+  )
+
+  expect_equal(names(raw_tabs)[1], "image_name")
+  expect_setequal(unique(raw_tabs$image_name), c("Sample_A", "Sample_B"))
+  expect_true("cpce_major_category" %in% names(raw_tabs))
+  expect_true("major_category" %in% names(raw_tabs))
+  expect_false(any(grepl("^deep_cres_", raw_tabs$image_name, ignore.case = TRUE)))
+
+  expect_equal(
+    raw_tabs$major_category[raw_tabs$image_name == "Sample_A" & raw_tabs$raw_data == "SPO"],
+    "SPONGES (S)"
+  )
+  expect_equal(
+    raw_tabs$major_category[raw_tabs$image_name == "Sample_A" & raw_tabs$raw_data == "PEYS"],
+    "PEYSSONNELIACEAE"
+  )
+  expect_equal(
+    raw_tabs$cpce_major_category[raw_tabs$image_name == "Sample_A" & raw_tabs$raw_data == "PEYS"],
+    "MA"
+  )
+})
+
 test_that("check_crosswalk reports unmapped labels", {
   example_dir <- system.file("extdata", package = "pointcoral")
   pts <- read_cpce_file(file.path(example_dir, "HIW_158_W_U-1.cpc"))

@@ -200,6 +200,175 @@ read_cpce_file <- function(path) {
   pc_complete_point_columns(out)
 }
 
+pc_default_crosswalk <- function() {
+  path <- system.file("extdata", "pointcoral_example_crosswalk.csv", package = "pointcoral")
+  if (!nzchar(path)) {
+    path <- file.path("inst", "extdata", "pointcoral_example_crosswalk.csv")
+  }
+  read_label_crosswalk(path)
+}
+
+pc_raw_tab_crosswalk <- function(crosswalk) {
+  if (is.null(crosswalk)) {
+    return(pc_default_crosswalk())
+  }
+  if (is.character(crosswalk) && length(crosswalk) == 1L) {
+    return(read_label_crosswalk(crosswalk))
+  }
+  tibble::as_tibble(crosswalk)
+}
+
+pc_major_category_from_cpce_group <- function(x) {
+  x <- toupper(trimws(as.character(x)))
+  dplyr::case_when(
+    x %in% c("C", "CORAL", "CORAL (C)") ~ "CORAL (C)",
+    x %in% c("G", "GORGONIAN", "GORGONIANS", "GORGONIANS (G)") ~ "GORGONIANS (G)",
+    x %in% c("S", "SPONGE", "SPONGES", "SPONGES (S)") ~ "SPONGES (S)",
+    x %in% c("Z", "ZOANTHID", "ZOANTHIDS", "ZOANTHIDS (Z)") ~ "ZOANTHIDS (Z)",
+    x %in% c("MA", "MACROALGAE", "MACROALGAE (MA)") ~ "MACROALGAE (MA)",
+    x %in% c("CA", "CORALLINE ALGAE", "CORALLINE ALGAE (CA)") ~ "CORALLINE ALGAE (CA)",
+    x %in% c("SPR", "SAND, PAVEMENT, RUBBLE", "SAND, PAVEMENT, RUBBLE (SPR)") ~ "SAND, PAVEMENT, RUBBLE (SPR)",
+    x %in% c("DCA", "DEAD CORAL WITH ALGAE", "DEAD CORAL WITH ALGAE (DCA)") ~ "DEAD CORAL WITH ALGAE (DCA)",
+    x %in% c("DC", "DISEASED CORAL", "DISEASED CORALS", "DISEASED CORALS (DC)") ~ "DISEASED CORALS (DC)",
+    x %in% c("TWS", "TAPE, WAND, SHADOW", "TAPE, WAND, SHADOW (TWS)") ~ "TAPE, WAND, SHADOW (TWS)",
+    x %in% c("U", "UNKNOWN", "UNKNOWNS", "UNKNOWNS (U)") ~ "UNKNOWNS (U)",
+    x %in% c("OL", "OTHER LIVE", "OTHER LIVE (OL)") ~ "OTHER LIVE (OL)",
+    x %in% c("ASC", "ASCIDIAN") ~ "ASCIDIAN",
+    x %in% c("PEYSSONNELIACEAE") ~ "PEYSSONNELIACEAE",
+    x %in% c("CALCAREOUS GREEN") ~ "CALCAREOUS GREEN",
+    is.na(x) | x == "" ~ NA_character_,
+    TRUE ~ "UNASSIGNED"
+  )
+}
+
+pc_is_raw_tab_workbook <- function(path) {
+  ext <- tolower(tools::file_ext(path))
+  if (!ext %in% c("xls", "xlsx")) {
+    return(FALSE)
+  }
+
+  tryCatch(
+    any(stringr::str_detect(readxl::excel_sheets(path), stringr::regex("_raw$", ignore_case = TRUE))),
+    error = function(e) FALSE
+  )
+}
+
+#' Read `_raw` sheets from a CPCe output workbook
+#'
+#' CPCe output workbooks often contain one worksheet per image, with raw point
+#' annotation worksheets named like `image_name_raw`. This function reads only
+#' those raw worksheets, skips `deep_cres_..._raw` worksheets by default, keeps
+#' the raw worksheet columns, adds `image_name` as the first column, and adds a
+#' full `major_category` column using a label crosswalk.
+#'
+#' @param path Path to a CPCe output `.xls` or `.xlsx` workbook.
+#' @param crosswalk Optional label crosswalk data frame or path. When `NULL`,
+#'   the bundled example crosswalk is used. The raw CPCe label in the workbook
+#'   is joined to `raw_code` or `raw_label`.
+#' @param skip_deep_cres Whether to skip worksheets whose names start with
+#'   `deep_cres_`. Those sheets use a different layout.
+#' @param sheet_pattern Regular expression used to identify raw worksheets.
+#'   Defaults to sheets ending in `_raw`.
+#'
+#' @return A tibble combining all selected raw worksheets. The original CPCe
+#'   raw major/group column is preserved as `cpce_major_category` when present.
+#' @export
+#'
+#' @examples
+#' xlsx <- system.file(
+#'   "extdata", "pointcoral_example_cpce_output_raw_tabs.xlsx",
+#'   package = "pointcoral"
+#' )
+#' read_cpce_output_raw_tabs(xlsx)
+read_cpce_output_raw_tabs <- function(path,
+                                      crosswalk = NULL,
+                                      skip_deep_cres = TRUE,
+                                      sheet_pattern = "_raw$") {
+  if (!file.exists(path)) {
+    cli::cli_abort("CPCe output workbook does not exist: {.file {path}}")
+  }
+
+  ext <- tolower(tools::file_ext(path))
+  if (!ext %in% c("xls", "xlsx")) {
+    cli::cli_abort("CPCe output workbook must be an {.file .xls} or {.file .xlsx} file.")
+  }
+
+  sheets <- readxl::excel_sheets(path)
+  raw_sheets <- sheets[stringr::str_detect(tolower(sheets), stringr::regex(sheet_pattern, ignore_case = TRUE))]
+
+  if (isTRUE(skip_deep_cres)) {
+    raw_sheets <- raw_sheets[!stringr::str_detect(tolower(raw_sheets), "^deep_cres_")]
+  }
+
+  if (length(raw_sheets) == 0L) {
+    cli::cli_abort(c(
+      "No CPCe raw worksheets found in {.file {path}}.",
+      "i" = "Expected sheet names ending in {.val _raw}.",
+      "i" = "Sheets beginning with {.val deep_cres_} are skipped by default."
+    ))
+  }
+
+  xwalk <- pc_raw_tab_crosswalk(crosswalk)
+  join_col <- if ("raw_code" %in% names(xwalk)) "raw_code" else if ("raw_label" %in% names(xwalk)) "raw_label" else NA_character_
+  if (is.na(join_col) || !"major_category" %in% names(xwalk)) {
+    cli::cli_abort("Crosswalk must contain {.field raw_code} or {.field raw_label}, plus {.field major_category}.")
+  }
+
+  xwalk <- xwalk |>
+    dplyr::transmute(
+      raw_data = as.character(.data[[join_col]]),
+      major_category = as.character(.data$major_category)
+    ) |>
+    dplyr::filter(!is.na(.data$raw_data), .data$raw_data != "") |>
+    dplyr::distinct(.data$raw_data, .keep_all = TRUE)
+
+  purrr::map_dfr(raw_sheets, function(sheet) {
+    dat <- readxl::read_excel(path, sheet = sheet, col_names = TRUE, .name_repair = "minimal")
+    blank_names <- is.na(names(dat)) | names(dat) == ""
+    names(dat)[blank_names] <- paste0("column_", which(blank_names))
+    dat <- janitor::clean_names(tibble::as_tibble(dat, .name_repair = "minimal"))
+
+    if ("major_category" %in% names(dat)) {
+      names(dat)[names(dat) == "major_category"] <- "cpce_major_category"
+    }
+    if ("group" %in% names(dat) && !"cpce_major_category" %in% names(dat)) {
+      names(dat)[names(dat) == "group"] <- "cpce_major_category"
+    }
+
+    if (!"raw_data" %in% names(dat)) {
+      cli::cli_abort(c(
+        "Raw worksheet {.val {sheet}} does not contain a {.field Raw Data} column.",
+        "i" = "Workbook: {.file {path}}"
+      ))
+    }
+
+    dat <- dat |>
+      dplyr::filter(!dplyr::if_all(dplyr::everything(), ~ is.na(.x))) |>
+      dplyr::mutate(raw_data = as.character(.data$raw_data)) |>
+      dplyr::filter(!is.na(.data$raw_data), .data$raw_data != "")
+
+    dat <- dat |>
+      dplyr::left_join(xwalk, by = "raw_data") |>
+      dplyr::mutate(
+        major_category = dplyr::coalesce(
+          .data$major_category,
+          if ("cpce_major_category" %in% names(dat)) {
+            pc_major_category_from_cpce_group(.data$cpce_major_category)
+          } else {
+            NA_character_
+          }
+        ),
+        image_name = stringr::str_remove(sheet, stringr::regex("_raw$", ignore_case = TRUE))
+      )
+
+    dat |>
+      dplyr::select(
+        dplyr::all_of("image_name"),
+        dplyr::everything()
+      )
+  })
+}
+
 #' Read a CPCe CSV or Excel export
 #'
 #' Reads generic CPCe-like point exports from CSV, TSV, XLS, or XLSX files,
@@ -308,9 +477,14 @@ read_cpce_folder <- function(path, image_root = NULL, recursive = TRUE) {
   files <- fs::dir_ls(path, recurse = recursive, type = "file")
   supported <- files[tolower(tools::file_ext(files)) %in% c("cpc", "csv", "tsv", "txt", "xls", "xlsx")]
   supported <- supported[!grepl("crosswalk|class_lookup|lookup", basename(supported), ignore.case = TRUE)]
+  raw_tab_workbook <- vapply(supported, pc_is_raw_tab_workbook, logical(1))
+  supported <- supported[!raw_tab_workbook]
 
   if (length(supported) == 0L) {
-    cli::cli_abort("No supported CPCe files found in {.file {path}}.")
+    cli::cli_abort(c(
+      "No supported CPCe point files found in {.file {path}}.",
+      "i" = "Use read_cpce_output_raw_tabs() for CPCe output workbooks with sheets ending in {.val _raw}."
+    ))
   }
 
   out <- purrr::map(supported, function(file) {

@@ -391,7 +391,41 @@ points <- read_cpce_folder(
 CSV/TSV/XLS/XLSX exports. It skips obvious crosswalk/lookup files so an
 `extdata` or project folder can contain both data and a crosswalk.
 
-### 3. Match images
+### 3. Read CPCe output workbook `_raw` tabs
+
+Some CPCe output workbooks contain one raw worksheet per image, with sheet names
+ending in `_raw`. Use `read_cpce_output_raw_tabs()` when you want those raw
+worksheet tables directly.
+
+```r
+raw_tabs <- read_cpce_output_raw_tabs("my_project/cpce_output/Total Site.xlsx")
+
+raw_tabs |>
+  dplyr::select(image_name, raw_data, cpce_major_category, major_category) |>
+  head()
+```
+
+The function:
+
+- reads only sheets ending in `_raw`
+- skips sheets beginning with `deep_cres_` by default because those use a
+  different format
+- adds `image_name` as the first column, based on the sheet name without `_raw`
+- preserves the CPCe workbook's original group/category column as
+  `cpce_major_category`
+- adds `major_category` using the bundled example crosswalk or your own
+  crosswalk
+
+For project-specific labels, pass your own crosswalk:
+
+```r
+raw_tabs <- read_cpce_output_raw_tabs(
+  "my_project/cpce_output/Total Site.xlsx",
+  crosswalk = "my_project/labels/my_crosswalk.csv"
+)
+```
+
+### 4. Match images
 
 ```r
 points <- match_images(points, image_root = "my_project/images")
@@ -420,7 +454,7 @@ converted <- convert_cpce_coords(
 
 The original CPCe coordinates remain in `cpce_x` and `cpce_y`.
 
-### 4. Use the labels already in the CPCe files
+### 5. Use the labels already in the CPCe files
 
 The bare workflow starts here. The `.cpc` point rows already contain labels, so
 you can validate, summarize, split, export ML labels, and write QC overlays
@@ -441,7 +475,7 @@ When `major_category` or `ml_class` are empty, these functions automatically use
 `raw_label`. Generated class IDs are assigned from the raw labels for ML CSVs
 and sparse masks.
 
-### 5. Optional: read and inspect a crosswalk
+### 6. Optional: read and inspect a crosswalk
 
 ```r
 xwalk <- read_label_crosswalk("my_project/labels/my_crosswalk.csv")
@@ -469,7 +503,7 @@ The reader also recognizes common synonyms from existing crosswalk tables,
 including
 `label_clean`, `major_class`, and `keep`.
 
-### 6. Optional: check the crosswalk before joining
+### 7. Optional: check the crosswalk before joining
 
 ```r
 report <- check_crosswalk(points, xwalk)
@@ -484,7 +518,7 @@ This reports:
 - missing class IDs
 - classes marked for exclusion
 
-### 7. Optional: standardize labels
+### 8. Optional: standardize labels
 
 ```r
 points_clean <- standardize_labels(
@@ -506,7 +540,7 @@ standardize_labels(points, xwalk, unknown_action = "error") # stop
 
 The package never silently drops unmapped labels.
 
-### 8. Validate standardized points
+### 9. Validate standardized points
 
 ```r
 validate_points(points_clean)
@@ -522,7 +556,7 @@ Checks include:
 - missing image files
 - missing image dimensions
 
-### 9. Summarize standardized ecological cover
+### 10. Summarize standardized ecological cover
 
 Summarize by major class:
 
@@ -800,6 +834,7 @@ points_clean <- standardize_labels(points, xwalk)
 Tested now:
 
 - CPCe `.cpc` files matching the bundled sample structure.
+- CPCe output Excel workbooks with raw worksheets ending in `_raw`.
 - JPEG images matching `.cpc` basenames.
 - CSV/Excel crosswalk files.
 - Generic point-like CSV/TSV/XLS/XLSX exports with recognizable coordinate and

@@ -23,6 +23,7 @@ CoralNet accounts, cloud APIs, Python, or closed platforms.
 Tested with bundled fixtures:
 
 - CPCe `.cpc` files following the sample text structure.
+- CPCe output workbooks with raw worksheets ending in `_raw`.
 - JPEG images matched to `.cpc` files by basename.
 - CSV crosswalk files with raw label/code columns and output class columns.
 
@@ -86,6 +87,9 @@ Standardized workflow:
 - `standardize_labels()` preserves raw labels and joins standardized fields such
   as `full_label`, `clean_label`, `label_class`, `major_category`, `ml_class`,
   and `class_id`.
+- `read_cpce_output_raw_tabs()` extracts CPCe workbook sheets ending in `_raw`,
+  skips `deep_cres_` sheets by default, preserves workbook group/category codes,
+  and adds full `major_category` values.
 
 The bundled example crosswalk is illustrative. Users should inspect their own
 CPCe labels and provide a project-specific crosswalk when their codes, benthic
