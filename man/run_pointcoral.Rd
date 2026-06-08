@@ -7,8 +7,8 @@
 run_pointcoral(
   cpce_dir,
   image_root,
-  crosswalk_path,
   out_dir,
+  crosswalk_path = NULL,
   recursive = TRUE,
   class_col = "ml_class",
   patch_size = 224,
@@ -22,9 +22,9 @@ run_pointcoral(
 
 \item{image_root}{Folder containing source images.}
 
-\item{crosswalk_path}{Path to a user-supplied label crosswalk.}
-
 \item{out_dir}{Output directory.}
+
+\item{crosswalk_path}{Optional path to a user-supplied label crosswalk.}
 
 \item{recursive}{Whether to search \code{cpce_dir} recursively.}
 
@@ -38,6 +38,9 @@ run_pointcoral(
 A list from \code{\link[=write_pointcoral_dataset]{write_pointcoral_dataset()}}.
 }
 \description{
-Reads CPCe files/exports from a folder, matches images, reads a crosswalk,
-standardizes labels, validates points, and writes analysis/ML-ready outputs.
+Reads CPCe files/exports from a folder, matches images, validates points, and
+writes analysis/ML-ready outputs. A crosswalk is optional. Without one,
+\code{pointcoral} uses the raw labels already stored in the CPCe files. With one,
+it standardizes those raw labels to full labels, ecological classes, and
+custom ML classes.
 }

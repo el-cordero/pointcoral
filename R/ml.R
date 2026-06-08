@@ -15,6 +15,7 @@ make_ml_points <- function(points, image_root = NULL, class_col = "ml_class") {
   if (!is.null(image_root)) {
     points <- match_images(points, image_root = image_root)
   }
+  class_col <- pc_resolve_label_col(points, preferred = class_col, arg = "class_col")
   pc_require_columns(points, c("image_id", "x_px", "y_px", class_col), "points")
 
   if ("include_in_ml" %in% names(points)) {
@@ -25,13 +26,7 @@ make_ml_points <- function(points, image_root = NULL, class_col = "ml_class") {
     points <- points[pc_bool(points$include_in_ml), , drop = FALSE]
   }
 
-  if (!"class_id" %in% names(points) || all(is.na(points$class_id))) {
-    lookup <- make_class_lookup(points, class_col = class_col, id_col = "class_id")
-    points <- points |>
-      dplyr::left_join(lookup, by = stats::setNames("label", class_col), suffix = c("", "_lookup")) |>
-      dplyr::mutate(class_id = dplyr::coalesce(.data$class_id, .data$class_id_lookup)) |>
-      dplyr::select(-dplyr::all_of("class_id_lookup"))
-  }
+  points <- pc_add_class_ids(points, class_col = class_col, id_col = "class_id")
 
   if (!"split" %in% names(points)) {
     points$split <- NA_character_
@@ -156,6 +151,8 @@ extract_point_patches <- function(points,
   if (!"image_path" %in% names(points) || all(is.na(points$image_path))) {
     points <- match_images(points, image_root = image_root)
   }
+  class_col <- pc_resolve_label_col(points, preferred = class_col, arg = "class_col")
+  points <- pc_add_class_ids(points, class_col = class_col, id_col = "class_id")
   pc_require_columns(points, c("image_path", "image_id", "point_id", "x_px", "y_px", class_col), "points")
 
   if (!"split" %in% names(points)) {
@@ -301,6 +298,9 @@ write_ml_points_csv <- function(points, out_dir) {
 #' @param ignore_index Pixel value for unlabeled pixels.
 #' @param background_index Reserved background value. Included for downstream
 #'   schemas; unlabeled pixels still default to `ignore_index`.
+#' @param class_col Label column used to assign `class_id` values when they are
+#'   missing. Defaults to `ml_class`, with automatic fallback to raw CPCe labels
+#'   for bare workflows without a crosswalk.
 #'
 #' @return A mask manifest tibble.
 #' @export
@@ -309,11 +309,14 @@ make_sparse_masks <- function(points,
                               out_dir,
                               radius = 3,
                               ignore_index = 255,
-                              background_index = 0) {
+                              background_index = 0,
+                              class_col = "ml_class") {
   points <- tibble::as_tibble(points)
   if (!"image_path" %in% names(points) || all(is.na(points$image_path))) {
     points <- match_images(points, image_root = image_root)
   }
+  class_col <- pc_resolve_label_col(points, preferred = class_col, arg = "class_col")
+  points <- pc_add_class_ids(points, class_col = class_col, id_col = "class_id")
   pc_require_columns(points, c("image_path", "image_id", "x_px", "y_px", "class_id"), "points")
 
   mask_dir <- file.path(out_dir, "masks")

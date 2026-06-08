@@ -6,17 +6,20 @@
 
 `pointcoral` is a local, open-source R package for CPCe/photoquadrat
 point-count workflows. It imports CPCe point annotations, matches those points
-to source images, standardizes raw short labels with a flexible crosswalk,
-creates ecological percent-cover tables, writes visual QC overlays, and exports
+to source images, creates ecological percent-cover tables, writes visual QC
+overlays, and exports
 machine-learning-ready point labels, image-centered patches, sparse masks, and
-train/validation/test splits.
+train/validation/test splits. When you want richer labels, it can also
+standardize raw short labels with a flexible crosswalk.
 
 The package is designed for reef photoquadrat projects where the raw CPCe labels
 are project-specific shorthand codes such as `SPO`, `CALG`, `PEYS`, `LOBO`, or
-`S`. Those raw labels are always preserved. A crosswalk maps them to full
-species or benthic type labels such as `Sponge`, `Coralline algae`,
-`Peyssonnelia`, `Lobophora variegata`, or `Sand`, plus the ecological major
-classes and subclasses used for analysis.
+`S`. Those raw labels are already inside the `.cpc` files and are always
+preserved. You can run a bare workflow directly from those labels. A crosswalk
+is the optional bonus layer that maps them to full species or benthic type
+labels such as `Sponge`, `Coralline algae`, `Peyssonnelia`,
+`Lobophora variegata`, or `Sand`, plus the ecological major classes and
+subclasses used for analysis.
 
 `pointcoral` does **not** depend on MERMAID, `mermaidr`, CoralNet accounts,
 cloud APIs, Python, or any closed platform. It is built to run fully on your own
@@ -29,10 +32,11 @@ summary graphics, QC images, and ML-ready outputs. The examples below are built
 from the two bundled sample `.cpc` files and matching sample images included in
 this repository.
 
-### 1. Raw CPCe point labels become readable biological labels
+### 1. Optional standardization turns raw CPCe labels into readable labels
 
 CPCe stores short codes. `pointcoral` keeps those short codes but joins them to
-the full label and ecological class you define in a crosswalk.
+the full label and ecological class you define in a crosswalk when you provide
+one.
 
 | Raw CPCe label | Full label | Subclass | Major class | Class ID |
 |---|---|---|---|---:|
@@ -49,7 +53,8 @@ the full label and ecological class you define in a crosswalk.
 ### 2. Imported points become a tidy table
 
 Each CPCe point is converted into a row with image identity, pixel coordinates,
-the original raw label, the full label, and the ecological class.
+and the original raw label. After the optional crosswalk step, the same table
+also includes full labels, ecological classes, and class IDs.
 
 | Image | Point | x | y | Raw | Full label | Major class | Class ID |
 |---|---:|---:|---:|---|---|---|---:|
@@ -62,8 +67,10 @@ the original raw label, the full label, and the ecological class.
 
 ### 3. Percent-cover summaries are created automatically
 
-This figure summarizes the two bundled sample images. The numbers are computed
-directly from CPCe point counts.
+This figure summarizes the two bundled sample images after applying the bundled
+example crosswalk. The numbers are still computed directly from CPCe point
+counts. Without a crosswalk, the same summary functions report percent cover by
+`raw_label`.
 
 ![Sample percent cover summary](man/figures/sample-cover-summary.png)
 
@@ -143,7 +150,6 @@ At minimum you need:
 
 1. CPCe `.cpc` files or CPCe-like point export tables.
 2. Matching image files.
-3. A label crosswalk that tells `pointcoral` what your raw CPCe codes mean.
 
 A simple project folder can look like this:
 
@@ -155,13 +161,21 @@ my_project/
   images/
     HIW_158_W_U-1.jpg
     H_211_E_U-1.jpg
-  labels/
-    my_crosswalk.csv
   outputs/
 ```
 
 The `.cpc` files and images may also live in the same folder. Image matching is
 by basename, so `HIW_158_W_U-1.cpc` matches `HIW_158_W_U-1.jpg`.
+
+A crosswalk is optional. Add one when you want to translate raw CPCe labels into
+full labels, major ecological classes, subclasses, or project-specific ML
+classes:
+
+```text
+my_project/
+  labels/
+    my_crosswalk.csv
+```
 
 ## Important label model
 
@@ -169,7 +183,8 @@ The package uses this distinction:
 
 - `raw_code`: the original CPCe short code.
 - `raw_label`: also the original CPCe short code as it appeared in the `.cpc`.
-- `full_label`: the full species or benthic type name.
+- `full_label`: the full species or benthic type name. This usually comes from
+  a crosswalk, not from the bare `.cpc` point rows.
 - `clean_label`: the standardized analysis label. By default this is the same
   as `full_label`.
 - `label_class`: the subclass/type vocabulary from the inspected
@@ -178,9 +193,10 @@ The package uses this distinction:
 - `major_category`: the ecological major class, such as `CORAL (C)`,
   `SPONGES (S)`, `PEYSSONNELIACEAE`, or
   `SAND, PAVEMENT, RUBBLE (SPR)`.
-- `ml_class`: the class label used for ML exports. By default this is the same
-  as `major_category`, but you can choose another column.
-- `class_id`: integer ID for ML masks and class lookup tables.
+- `ml_class`: the class label used for ML exports after standardization. In a
+  bare workflow, `pointcoral` uses `raw_label` instead.
+- `class_id`: integer ID for ML masks and class lookup tables. If a crosswalk
+  does not provide IDs, IDs are generated from the label column being used.
 
 For example:
 
@@ -195,8 +211,9 @@ S        S         Sand                      subcategory SAND, PAVEMENT, RUBBLE 
 
 The bundled example crosswalk was generated from the existing scripts and uses
 the major-class/subclass vocabulary in `_existing/clean_transect_raw.py`. It is
-a starting example, not a universal ontology. You should review it against your
-own CPCe codefile before using it for final analysis.
+a starting example, not a universal ontology. You do not need it for the bare
+workflow, but you should review it against your own CPCe codefile before using
+standardized classes for final analysis.
 
 ## Quick start with bundled example data
 
@@ -207,11 +224,6 @@ library(pointcoral)
 library(dplyr)
 
 example_dir <- system.file("extdata", package = "pointcoral")
-crosswalk_path <- system.file(
-  "extdata",
-  "pointcoral_example_crosswalk.csv",
-  package = "pointcoral"
-)
 
 points_raw <- read_cpce_folder(
   path = example_dir,
@@ -219,9 +231,37 @@ points_raw <- read_cpce_folder(
   recursive = FALSE
 )
 
+points_raw |>
+  select(image_id, point_id, x_px, y_px, raw_label) |>
+  head()
+```
+
+Bare example output:
+
+```text
+image_id       point_id x_px y_px raw_label
+HIW_158_W_U-1 1        65   38    SPO
+HIW_158_W_U-1 2        23   362   S
+HIW_158_W_U-1 3        89   557   CALG
+```
+
+You can summarize immediately by raw CPCe label:
+
+```r
+summarize_images(points_raw)
+```
+
+Then, as an optional standardization step, add the example crosswalk:
+
+```r
+crosswalk_path <- system.file(
+  "extdata",
+  "pointcoral_example_crosswalk.csv",
+  package = "pointcoral"
+)
+
 crosswalk <- read_label_crosswalk(crosswalk_path)
 points_clean <- standardize_labels(points_raw, crosswalk)
-
 points_clean |>
   select(image_id, point_id, x_px, y_px, raw_label, full_label,
          label_class, major_category, class_id) |>
@@ -239,9 +279,9 @@ HIW_158_W_U-1 3        89   557   CALG      Coralline algae  CORALLINE ALGAE (CA
 
 ## One-command workflow
 
-Use `run_pointcoral()` when your goal is to import a folder, standardize labels,
-write ecological tables, create ML labels, and optionally write patches, sparse
-masks, and QC overlays.
+Use `run_pointcoral()` when your goal is to import a folder, write ecological
+tables, create ML labels, and optionally write patches, sparse masks, and QC
+overlays. The bare call does not need a crosswalk:
 
 ```r
 out_dir <- file.path(tempdir(), "pointcoral_outputs")
@@ -249,10 +289,8 @@ out_dir <- file.path(tempdir(), "pointcoral_outputs")
 result <- run_pointcoral(
   cpce_dir = example_dir,
   image_root = example_dir,
-  crosswalk_path = crosswalk_path,
   out_dir = out_dir,
   recursive = FALSE,
-  class_col = "ml_class",
   patch_size = 224,
   make_patches = FALSE,
   make_masks = TRUE,
@@ -260,8 +298,29 @@ result <- run_pointcoral(
 )
 
 result$validation_report
-result$crosswalk_check
+result$class_col
 result$ml_points
+```
+
+When you want full labels and major classes, pass a crosswalk:
+
+```r
+result_standardized <- run_pointcoral(
+  cpce_dir = example_dir,
+  image_root = example_dir,
+  out_dir = file.path(tempdir(), "pointcoral_outputs_standardized"),
+  crosswalk_path = crosswalk_path,
+  recursive = FALSE,
+  class_col = "ml_class",
+  make_patches = FALSE,
+  make_masks = TRUE,
+  make_qc = TRUE
+)
+
+result_standardized$crosswalk_check
+result_standardized$points_clean |>
+  select(raw_label, full_label, major_category, class_id) |>
+  head()
 ```
 
 The output folder contains:
@@ -364,7 +423,28 @@ converted <- convert_cpce_coords(
 
 The original CPCe coordinates remain in `cpce_x` and `cpce_y`.
 
-### 4. Read and inspect a crosswalk
+### 4. Use the labels already in the CPCe files
+
+The bare workflow starts here. The `.cpc` point rows already contain labels, so
+you can validate, summarize, split, export ML labels, and write QC overlays
+without a crosswalk.
+
+```r
+validate_points(points)
+
+summarize_images(points)
+summarize_transects(points)
+summarize_sites(points)
+
+points_split <- split_ml_points(points, split_by = "image", seed = 1)
+ml_points <- make_ml_points(points_split)
+```
+
+When `major_category` or `ml_class` are empty, these functions automatically use
+`raw_label`. Generated class IDs are assigned from the raw labels for ML CSVs
+and sparse masks.
+
+### 5. Optional: read and inspect a crosswalk
 
 ```r
 xwalk <- read_label_crosswalk("my_project/labels/my_crosswalk.csv")
@@ -391,7 +471,7 @@ notes
 The reader also recognizes common synonyms from older scripts, including
 `label_clean`, `major_class`, and `keep`.
 
-### 5. Check the crosswalk before joining
+### 6. Optional: check the crosswalk before joining
 
 ```r
 report <- check_crosswalk(points, xwalk)
@@ -406,7 +486,7 @@ This reports:
 - missing class IDs
 - classes marked for exclusion
 
-### 6. Standardize labels
+### 7. Optional: standardize labels
 
 ```r
 points_clean <- standardize_labels(
@@ -428,7 +508,7 @@ standardize_labels(points, xwalk, unknown_action = "error") # stop
 
 The package never silently drops unmapped labels.
 
-### 7. Validate points
+### 8. Validate standardized points
 
 ```r
 validate_points(points_clean)
@@ -444,7 +524,7 @@ Checks include:
 - missing image files
 - missing image dimensions
 
-### 8. Summarize ecological cover
+### 9. Summarize standardized ecological cover
 
 Summarize by major class:
 
@@ -490,6 +570,14 @@ write_summary_tables(
 
 ### Make ML point labels
 
+Bare CPCe labels:
+
+```r
+ml_points <- make_ml_points(points_split)
+```
+
+Standardized labels after a crosswalk:
+
 ```r
 ml_points <- make_ml_points(points_clean, class_col = "ml_class")
 
@@ -529,7 +617,7 @@ points_split <- split_ml_points(points_clean, split_by = "site", seed = 1)
 Write ML CSV files:
 
 ```r
-ml_points <- make_ml_points(points_split, class_col = "ml_class")
+ml_points <- make_ml_points(points_split)
 write_ml_points_csv(ml_points, out_dir = "my_project/outputs/ml")
 ```
 
@@ -541,7 +629,6 @@ patch_manifest <- extract_point_patches(
   image_root = "my_project/images",
   out_dir = "my_project/outputs/patches",
   patch_size = 224,
-  class_col = "ml_class",
   edge = "skip"
 )
 ```
@@ -628,7 +715,6 @@ one_points <- points_clean[points_clean$image_path == one_image, ]
 overlay <- plot_points_on_image(
   image_path = one_image,
   points = one_points,
-  label_col = "clean_label",
   point_size = 8
 )
 
@@ -641,8 +727,7 @@ overlay
 overlay_manifest <- write_qc_overlays(
   points_clean,
   image_root = "my_project/images",
-  out_dir = "my_project/outputs/qc",
-  label_col = "clean_label"
+  out_dir = "my_project/outputs/qc"
 )
 ```
 

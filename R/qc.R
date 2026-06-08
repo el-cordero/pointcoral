@@ -15,6 +15,7 @@ plot_points_on_image <- function(image_path,
                                  point_size = 8) {
   points <- tibble::as_tibble(points)
   pc_require_columns(points, c("x_px", "y_px"), "points")
+  label_col <- pc_resolve_label_col(points, preferred = label_col, arg = "label_col")
 
   if (!label_col %in% names(points)) {
     cli::cli_abort("{.arg points} does not contain label column {.field {label_col}}.")
@@ -119,6 +120,7 @@ write_qc_overlays <- function(points,
   if (!"image_path" %in% names(points) || all(is.na(points$image_path))) {
     points <- match_images(points, image_root = image_root)
   }
+  label_col <- pc_resolve_label_col(points, preferred = label_col, arg = "label_col")
   pc_require_columns(points, c("image_path", "image_id", "x_px", "y_px", label_col), "points")
 
   overlay_dir <- file.path(out_dir, "overlays")

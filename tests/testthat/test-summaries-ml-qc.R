@@ -21,6 +21,45 @@ test_that("summary percentages are computed by group", {
   expect_true(all(abs(totals$total - 100) < 1e-8))
 })
 
+test_that("bare CPCe workflow works without a crosswalk", {
+  example_dir <- system.file("extdata", package = "pointcoral")
+  pts <- read_cpce_folder(example_dir, image_root = example_dir, recursive = FALSE)
+
+  expect_true(all(!is.na(pts$raw_label)))
+  expect_true(all(is.na(pts$major_category)))
+
+  image_summary <- summarize_images(pts)
+  expect_true("raw_label" %in% names(image_summary))
+
+  totals <- image_summary |>
+    dplyr::group_by(image_id) |>
+    dplyr::summarise(total = sum(percent), .groups = "drop")
+  expect_true(all(abs(totals$total - 100) < 1e-8))
+
+  split <- split_ml_points(pts, split_by = "image", train = 0.5, val = 0, test = 0.5, seed = 10)
+  ml <- make_ml_points(split)
+  expect_setequal(sort(unique(ml$label)), sort(unique(pts$raw_label)))
+  expect_true(all(!is.na(ml$class_id)))
+
+  out_dir <- tempfile("bare-pointcoral-")
+  result <- run_pointcoral(
+    cpce_dir = example_dir,
+    image_root = example_dir,
+    out_dir = out_dir,
+    recursive = FALSE,
+    make_patches = FALSE,
+    make_masks = TRUE,
+    make_qc = FALSE
+  )
+
+  expect_equal(result$class_col, "raw_label")
+  expect_equal(nrow(result$crosswalk_check), 0)
+  expect_true(file.exists(result$paths$points_clean))
+  expect_true(file.exists(result$paths$labels))
+  expect_true(nrow(result$mask_manifest) > 0)
+  expect_true(all(!is.na(result$points_clean$class_id)))
+})
+
 test_that("train validation test splitting avoids image leakage", {
   pts <- test_points_clean()
   split <- split_ml_points(pts, split_by = "image", train = 0.5, val = 0, test = 0.5, seed = 10)

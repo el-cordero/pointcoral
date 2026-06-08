@@ -10,7 +10,8 @@ make_sparse_masks(
   out_dir,
   radius = 3,
   ignore_index = 255,
-  background_index = 0
+  background_index = 0,
+  class_col = "ml_class"
 )
 }
 \arguments{
@@ -26,6 +27,10 @@ make_sparse_masks(
 
 \item{background_index}{Reserved background value. Included for downstream
 schemas; unlabeled pixels still default to \code{ignore_index}.}
+
+\item{class_col}{Label column used to assign \code{class_id} values when they are
+missing. Defaults to \code{ml_class}, with automatic fallback to raw CPCe labels
+for bare workflows without a crosswalk.}
 }
 \value{
 A mask manifest tibble.

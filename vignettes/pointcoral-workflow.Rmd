@@ -19,10 +19,12 @@ QC overlays, and ML-ready datasets. The package is fully local and does not
 require MERMAID, CoralNet, or any closed platform.
 
 The key label convention is that `raw_label` remains the original short CPCe
-label from the `.cpc` file, while `full_label` and `clean_label` are populated
-from a user-supplied crosswalk. The bundled example maps short labels such as
-`SPO`, `CALG`, and `PEFL` to full labels such as `Sponge`, `Coralline algae`,
-and `Peyssonnelia flavescens`, and to major classes such as `SPONGES (S)`,
+label from the `.cpc` file. You can run the bare workflow directly from those
+raw labels. A crosswalk is optional when you want to populate `full_label`,
+`clean_label`, `label_class`, `major_category`, `ml_class`, and project-specific
+`class_id` values. The bundled example maps short labels such as `SPO`, `CALG`,
+and `PEFL` to full labels such as `Sponge`, `Coralline algae`, and
+`Peyssonnelia flavescens`, and to major classes such as `SPONGES (S)`,
 `CORALLINE ALGAE (CA)`, and `PEYSSONNELIACEAE`.
 
 ```{r setup}
@@ -53,7 +55,23 @@ provided. You can also match later:
 points_raw <- match_images(points_raw, image_root = example_dir)
 ```
 
-## 3. Read a crosswalk table
+## 3. Bare workflow from raw CPCe labels
+
+The `.cpc` files already contain point labels. In this bare workflow,
+`summarize_images()` and `make_ml_points()` fall back to `raw_label` because
+`major_category` and `ml_class` have not been populated by a crosswalk.
+
+```{r bare}
+validate_points(points_raw)
+summarize_images(points_raw)
+
+points_split_raw <- split_ml_points(points_raw, split_by = "image", seed = 1)
+ml_points_raw <- make_ml_points(points_split_raw)
+
+dplyr::count(ml_points_raw, label, class_id, sort = TRUE)
+```
+
+## 4. Optional: read a crosswalk table
 
 ```{r crosswalk}
 crosswalk_path <- system.file(
@@ -65,13 +83,13 @@ crosswalk <- read_label_crosswalk(crosswalk_path)
 dplyr::glimpse(crosswalk)
 ```
 
-## 4. Check unmapped labels
+## 5. Optional: check unmapped labels
 
 ```{r check}
 check_crosswalk(points_raw, crosswalk)
 ```
 
-## 5. Apply label standardization
+## 6. Optional: apply label standardization
 
 ```{r standardize}
 points_clean <- standardize_labels(
@@ -84,13 +102,13 @@ points_clean |>
   count(raw_label, full_label, label_class, major_category, class_id, sort = TRUE)
 ```
 
-## 6. Validate points
+## 7. Validate standardized points
 
 ```{r validate}
 validate_points(points_clean)
 ```
 
-## 7. Create ecological summary tables
+## 8. Create standardized ecological summary tables
 
 ```{r summarize}
 summarize_images(points_clean, class_col = "major_category")
@@ -100,7 +118,7 @@ summarize_sites(points_clean, class_col = "major_category")
 summarize_images(points_clean, class_col = "clean_label")
 ```
 
-## 8. Create ML point-label CSVs
+## 9. Create ML point-label CSVs
 
 ```{r ml}
 points_split <- split_ml_points(points_clean, split_by = "image", seed = 1)
@@ -112,7 +130,7 @@ dir.create(out_dir)
 write_ml_points_csv(ml_points, file.path(out_dir, "ml"))
 ```
 
-## 9. Extract point patches
+## 10. Extract point patches
 
 Patch extraction writes image crops to disk. For large projects, run this in a
 dedicated output folder.
@@ -128,7 +146,7 @@ extract_point_patches(
 )
 ```
 
-## 10. Create sparse masks
+## 11. Create sparse masks
 
 Sparse masks are weak labels. Pixels outside point disks remain `ignore_index`
 by default.
@@ -142,7 +160,7 @@ make_sparse_masks(
 )
 ```
 
-## 11. Create QC overlays
+## 12. Create QC overlays
 
 ```{r qc, eval = FALSE}
 write_qc_overlays(
@@ -159,10 +177,12 @@ write_qc_overlays(
 run_pointcoral(
   cpce_dir = example_dir,
   image_root = example_dir,
-  crosswalk_path = crosswalk_path,
   out_dir = file.path(out_dir, "outputs"),
   make_patches = TRUE,
   make_masks = TRUE,
   make_qc = TRUE
 )
 ```
+
+Add `crosswalk_path = crosswalk_path` to that wrapper call when you want the
+standardized labels and major classes shown above.

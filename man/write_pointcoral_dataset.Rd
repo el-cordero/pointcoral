@@ -35,7 +35,10 @@ write_pointcoral_dataset(
 A list containing paths, tibbles, and manifests.
 }
 \description{
-Runs the common local workflow: optional label standardization, validation,
-ecological summaries, train/validation/test splits, ML label CSVs, optional
-point patches, optional sparse masks, and optional QC overlays.
+Runs the common local workflow: validation, ecological summaries,
+train/validation/test splits, ML label CSVs, optional point patches, optional
+sparse masks, and optional QC overlays. If \code{crosswalk} is \code{NULL}, the
+workflow uses the raw CPCe labels already stored in the point table. A
+crosswalk is an optional standardization layer for full labels, ecological
+major classes, and custom ML classes.
 }

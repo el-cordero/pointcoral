@@ -142,6 +142,7 @@ validate_points <- function(points) {
 #' @export
 qc_label_summary <- function(points, label_col = "ml_class", rare_threshold = 1L) {
   points <- tibble::as_tibble(points)
+  label_col <- pc_resolve_label_col(points, preferred = label_col, arg = "label_col")
   if (!label_col %in% names(points)) {
     cli::cli_abort("{.arg points} does not contain label column {.field {label_col}}.")
   }
@@ -177,6 +178,6 @@ qc_label_summary <- function(points, label_col = "ml_class", rare_threshold = 1L
   }
 
   dplyr::bind_rows(class_balance, rare, unmapped, duplicates) |>
-    dplyr::select(.data$summary_type, .data$label, .data$n, .data$details) |>
+    dplyr::select(dplyr::all_of(c("summary_type", "label", "n", "details"))) |>
     dplyr::arrange(.data$summary_type, dplyr::desc(.data$n), .data$label)
 }

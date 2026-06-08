@@ -1,8 +1,11 @@
 #' Write a complete pointcoral dataset from imported points
 #'
-#' Runs the common local workflow: optional label standardization, validation,
-#' ecological summaries, train/validation/test splits, ML label CSVs, optional
-#' point patches, optional sparse masks, and optional QC overlays.
+#' Runs the common local workflow: validation, ecological summaries,
+#' train/validation/test splits, ML label CSVs, optional point patches, optional
+#' sparse masks, and optional QC overlays. If `crosswalk` is `NULL`, the
+#' workflow uses the raw CPCe labels already stored in the point table. A
+#' crosswalk is an optional standardization layer for full labels, ecological
+#' major classes, and custom ML classes.
 #'
 #' @param points Imported point data.
 #' @param image_root Image root for matching images.
@@ -52,6 +55,14 @@ write_pointcoral_dataset <- function(points,
     points_clean <- standardize_labels(points_raw, crosswalk_tbl, unknown_action = "warn")
   }
 
+  effective_class_col <- pc_resolve_label_col(
+    points_clean,
+    preferred = class_col,
+    arg = "class_col",
+    inform = TRUE
+  )
+  points_clean <- pc_add_class_ids(points_clean, class_col = effective_class_col)
+
   points_clean_path <- file.path(tables_dir, "points_clean.csv")
   readr::write_csv(points_clean, points_clean_path)
 
@@ -65,11 +76,11 @@ write_pointcoral_dataset <- function(points,
   summary_paths <- write_summary_tables(
     points_clean,
     out_dir = tables_dir,
-    class_cols = c("major_category", "clean_label", class_col)
+    class_cols = c("major_category", "clean_label", effective_class_col)
   )
 
   split_points <- split_ml_points(points_clean, split_by = "image", seed = 1)
-  ml_points <- make_ml_points(split_points, image_root = image_root, class_col = class_col)
+  ml_points <- make_ml_points(split_points, image_root = image_root, class_col = effective_class_col)
   ml_paths <- write_ml_points_csv(ml_points, ml_dir)
 
   patch_manifest <- tibble::tibble()
@@ -79,7 +90,7 @@ write_pointcoral_dataset <- function(points,
       image_root = image_root,
       out_dir = patches_dir,
       patch_size = patch_size,
-      class_col = class_col,
+      class_col = effective_class_col,
       edge = "skip"
     )
   }
@@ -89,11 +100,12 @@ write_pointcoral_dataset <- function(points,
     mask_manifest <- make_sparse_masks(
       split_points,
       image_root = image_root,
-      out_dir = masks_dir
+      out_dir = masks_dir,
+      class_col = effective_class_col
     )
   }
 
-  label_summary <- qc_label_summary(points_clean, label_col = class_col)
+  label_summary <- qc_label_summary(points_clean, label_col = effective_class_col)
   label_summary_path <- file.path(qc_dir, "label_summary.csv")
   readr::write_csv(label_summary, label_summary_path)
 
@@ -103,7 +115,7 @@ write_pointcoral_dataset <- function(points,
       split_points,
       image_root = image_root,
       out_dir = qc_dir,
-      label_col = class_col
+      label_col = effective_class_col
     )
   }
 
@@ -123,6 +135,7 @@ write_pointcoral_dataset <- function(points,
     points_clean = points_clean,
     validation_report = validation_report,
     crosswalk_check = crosswalk_report,
+    class_col = effective_class_col,
     ml_points = ml_points,
     patch_manifest = patch_manifest,
     mask_manifest = mask_manifest,
@@ -133,13 +146,16 @@ write_pointcoral_dataset <- function(points,
 
 #' Run the full pointcoral workflow from folders
 #'
-#' Reads CPCe files/exports from a folder, matches images, reads a crosswalk,
-#' standardizes labels, validates points, and writes analysis/ML-ready outputs.
+#' Reads CPCe files/exports from a folder, matches images, validates points, and
+#' writes analysis/ML-ready outputs. A crosswalk is optional. Without one,
+#' `pointcoral` uses the raw labels already stored in the CPCe files. With one,
+#' it standardizes those raw labels to full labels, ecological classes, and
+#' custom ML classes.
 #'
 #' @param cpce_dir Folder containing CPCe files or exports.
 #' @param image_root Folder containing source images.
-#' @param crosswalk_path Path to a user-supplied label crosswalk.
 #' @param out_dir Output directory.
+#' @param crosswalk_path Optional path to a user-supplied label crosswalk.
 #' @param recursive Whether to search `cpce_dir` recursively.
 #' @param class_col Class column to use for ML labels.
 #' @param patch_size Patch size for point-centered patches.
@@ -149,8 +165,8 @@ write_pointcoral_dataset <- function(points,
 #' @export
 run_pointcoral <- function(cpce_dir,
                            image_root,
-                           crosswalk_path,
                            out_dir,
+                           crosswalk_path = NULL,
                            recursive = TRUE,
                            class_col = "ml_class",
                            patch_size = 224,

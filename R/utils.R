@@ -182,6 +182,70 @@ pc_available_columns <- function(data, cols) {
   intersect(cols, names(data))
 }
 
+pc_col_has_values <- function(data, col) {
+  col %in% names(data) &&
+    any(!is.na(data[[col]]) & as.character(data[[col]]) != "")
+}
+
+pc_resolve_label_col <- function(data,
+                                 preferred = "ml_class",
+                                 candidates = c(
+                                   "ml_class", "major_category", "clean_label",
+                                   "full_label", "raw_label", "raw_code"
+                                 ),
+                                 arg = "class_col",
+                                 inform = FALSE) {
+  data <- tibble::as_tibble(data)
+
+  if (!is.null(preferred) && pc_col_has_values(data, preferred)) {
+    return(preferred)
+  }
+
+  fallback <- candidates[vapply(candidates, pc_col_has_values, logical(1), data = data)]
+  if (length(fallback) > 0L) {
+    fallback <- fallback[1]
+    if (isTRUE(inform) && !is.null(preferred) && !identical(preferred, fallback)) {
+      cli::cli_inform(c(
+        "Using {.field {fallback}} as the label column.",
+        "i" = "{.field {preferred}} is missing or empty. This is expected for a bare CPCe workflow without a crosswalk."
+      ))
+    }
+    return(fallback)
+  }
+
+  cli::cli_abort(c(
+    "Could not find a usable label column in {.arg data}.",
+    "i" = "Tried {.field {unique(c(preferred, candidates))}}.",
+    "i" = "Bare CPCe workflows need at least {.field raw_label} or {.field raw_code}."
+  ))
+}
+
+pc_add_class_ids <- function(points, class_col, id_col = "class_id") {
+  points <- tibble::as_tibble(points)
+  pc_require_columns(points, class_col, "points")
+
+  if (!id_col %in% names(points)) {
+    points[[id_col]] <- NA_integer_
+  }
+
+  lookup <- make_class_lookup(points, class_col = class_col, id_col = id_col)
+  if (nrow(lookup) == 0L) {
+    return(points)
+  }
+
+  names(lookup)[names(lookup) == "class_id"] <- ".pc_class_id"
+
+  points <- points |>
+    dplyr::left_join(lookup, by = stats::setNames("label", class_col))
+  points[[id_col]] <- dplyr::coalesce(
+    as.integer(points[[id_col]]),
+    as.integer(points$.pc_class_id)
+  )
+  points$.pc_class_id <- NULL
+
+  points
+}
+
 pc_make_unique_file <- function(path) {
   if (!file.exists(path)) {
     return(path)

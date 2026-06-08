@@ -10,8 +10,9 @@ Recommended order:
 2. Run `00_build_install_pointcoral.R`.
 3. Run `01_run_sample_data.R`.
 4. Open and knit `pointcoral_rstudio_walkthrough.Rmd`.
-5. Copy `02_run_my_data_template.R` for your own CPCe folder, image folder, and
-   crosswalk.
+5. Copy `02_run_my_data_template.R` for your own CPCe folder and image folder.
+   Add a crosswalk path only when you want standardized full labels, major
+   categories, subclasses, or custom ML classes.
 
 The scripts assume this layout:
 

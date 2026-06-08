@@ -1,6 +1,6 @@
 # Template for running pointcoral on your own CPCe/photoquadrat project.
 #
-# Copy this file, then edit the four paths below.
+# Copy this file, then edit the paths below.
 
 if (requireNamespace("rstudioapi", quietly = TRUE) && rstudioapi::isAvailable()) {
   active <- rstudioapi::getActiveDocumentContext()$path
@@ -18,14 +18,21 @@ devtools::load_all(package_dir)
 
 cpce_dir <- "/path/to/your/cpce_files"
 image_root <- "/path/to/your/images"
-crosswalk_path <- "/path/to/your/crosswalk.csv"
 out_dir <- file.path(getwd(), "outputs", "my_project_run")
+
+# Optional. Leave as NULL for the bare workflow, which uses the raw CPCe labels
+# already stored in your .cpc files. Set this to a CSV/XLSX path when you want
+# full labels, major categories, subclasses, or custom ML classes.
+crosswalk_path <- NULL
+# crosswalk_path <- "/path/to/your/crosswalk.csv"
 
 # -------------------------------------------------------------------------
 # OPTIONAL SETTINGS
 # -------------------------------------------------------------------------
 
-class_col <- "ml_class"
+# Use "raw_label" for the bare workflow. Use "ml_class", "major_category",
+# "clean_label", or another column after applying a crosswalk.
+class_col <- "raw_label"
 patch_size <- 224
 make_patches <- TRUE
 make_masks <- TRUE
@@ -50,5 +57,6 @@ result <- run_pointcoral(
 
 print(result$validation_report)
 print(result$crosswalk_check)
+message("Label column used: ", result$class_col)
 
 message("Done. Outputs written to: ", out_dir)

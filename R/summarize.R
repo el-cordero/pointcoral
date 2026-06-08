@@ -13,6 +13,7 @@ summarize_points <- function(points,
                              by = c("site", "transect", "image_id"),
                              class_col = "major_category") {
   points <- tibble::as_tibble(points)
+  class_col <- pc_resolve_label_col(points, preferred = class_col, arg = "class_col")
   pc_require_columns(points, class_col, "points")
   by <- pc_available_columns(points, by)
 
@@ -91,7 +92,11 @@ write_summary_tables <- function(points,
                                  class_cols = c("major_category", "clean_label", "ml_class")) {
   dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
   points <- tibble::as_tibble(points)
-  class_cols <- intersect(class_cols, names(points))
+  class_cols <- unique(class_cols)
+  class_cols <- class_cols[vapply(class_cols, pc_col_has_values, logical(1), data = points)]
+  if (length(class_cols) == 0L && pc_col_has_values(points, "raw_label")) {
+    class_cols <- "raw_label"
+  }
 
   if (length(class_cols) == 0L) {
     cli::cli_abort("None of {.arg class_cols} were present in {.arg points}.")
@@ -120,8 +125,9 @@ write_summary_tables <- function(points,
     paths[[paste0("site_summary", suffix)]] <- site_path
   }
 
-  if ("ml_class" %in% names(points)) {
-    lookup <- make_class_lookup(points, class_col = "ml_class", id_col = "class_id")
+  lookup_col <- pc_resolve_label_col(points, preferred = "ml_class", arg = "class_col")
+  if (pc_col_has_values(points, lookup_col)) {
+    lookup <- make_class_lookup(points, class_col = lookup_col, id_col = "class_id")
     lookup_path <- file.path(out_dir, "class_lookup.csv")
     readr::write_csv(lookup, lookup_path)
     paths$class_lookup <- lookup_path
