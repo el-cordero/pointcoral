@@ -108,6 +108,13 @@ is `ignore_index`, meaning it is not treated as a dense annotation.
 
 ![Sample sparse mask preview](man/figures/sample-sparse-mask-preview.png)
 
+### 7. Potential ML outputs from pointcoral data
+
+Pointcoral point tables can support downstream ML review products such as
+labeled point views, prediction masks, and prediction overlays.
+
+![Potential ML outputs from pointcoral data](man/figures/potential-ml-outputs.png)
+
 ## Installation
 
 Install from GitHub:
@@ -122,27 +129,6 @@ Load the package:
 ```r
 library(pointcoral)
 ```
-
-## RStudio testing folder
-
-If you are working from the local `PointCoralPackage` folder, there is a
-ready-to-use RStudio helper folder outside the package directory:
-
-```text
-PointCoralPackage/
-  pointcoral/
-  pointcoral-rstudio-workflows/
-```
-
-Open `pointcoral-rstudio-workflows/` in RStudio and run:
-
-1. `00_build_install_pointcoral.R`
-2. `01_run_sample_data.R`
-3. `pointcoral_rstudio_walkthrough.Rmd`
-4. Copy `02_run_my_data_template.R` and edit the paths for your own data.
-
-The same helper files are mirrored in `rstudio-workflows/` in this GitHub repo
-so they stay synced, but that folder is excluded from R package builds.
 
 ## What pointcoral expects
 
@@ -401,7 +387,7 @@ worksheet tables directly.
 raw_tabs <- read_cpce_output_raw_tabs("my_project/cpce_output/Total Site.xlsx")
 
 raw_tabs |>
-  dplyr::select(image_name, raw_data, cpce_major_category, major_category) |>
+  dplyr::select(image_name, point_index, raw_data, cpce_major_category, major_category) |>
   head()
 ```
 
@@ -411,6 +397,8 @@ The function:
 - skips sheets beginning with `deep_cres_` by default because those use a
   different format
 - adds `image_name` as the first column, based on the sheet name without `_raw`
+- adds `point_index`, a 1-based row index within each raw sheet that preserves
+  CPCe point order for later joins to `.cpc` files
 - preserves the CPCe workbook's original group/category column as
   `cpce_major_category`
 - adds `major_category` using the bundled example crosswalk or your own

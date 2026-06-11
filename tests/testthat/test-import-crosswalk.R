@@ -55,10 +55,13 @@ test_that("CPCe output raw tabs are extracted with image names and major categor
   )
 
   expect_equal(names(raw_tabs)[1], "image_name")
+  expect_equal(names(raw_tabs)[2], "point_index")
   expect_setequal(unique(raw_tabs$image_name), c("Sample_A", "Sample_B"))
   expect_true("cpce_major_category" %in% names(raw_tabs))
   expect_true("major_category" %in% names(raw_tabs))
   expect_false(any(grepl("^deep_cres_", raw_tabs$image_name, ignore.case = TRUE)))
+  expect_equal(raw_tabs$point_index[raw_tabs$image_name == "Sample_A"], seq_len(4))
+  expect_equal(raw_tabs$point_index[raw_tabs$image_name == "Sample_B"], seq_len(3))
 
   expect_equal(
     raw_tabs$major_category[raw_tabs$image_name == "Sample_A" & raw_tabs$raw_data == "SPO"],

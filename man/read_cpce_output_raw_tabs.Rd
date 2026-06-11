@@ -25,15 +25,18 @@ is joined to \code{raw_code} or \code{raw_label}.}
 Defaults to sheets ending in \verb{_raw}.}
 }
 \value{
-A tibble combining all selected raw worksheets. The original CPCe
-raw major/group column is preserved as \code{cpce_major_category} when present.
+A tibble combining all selected raw worksheets. The first columns are
+\code{image_name} and \code{point_index}. The original CPCe raw major/group column is
+preserved as \code{cpce_major_category} when present.
 }
 \description{
 CPCe output workbooks often contain one worksheet per image, with raw point
 annotation worksheets named like \code{image_name_raw}. This function reads only
 those raw worksheets, skips \code{deep_cres_..._raw} worksheets by default, keeps
-the raw worksheet columns, adds \code{image_name} as the first column, and adds a
-full \code{major_category} column using a label crosswalk.
+the raw worksheet columns, adds \code{image_name} and \code{point_index} as the first
+columns, and adds a full \code{major_category} column using a label crosswalk.
+\code{point_index} is a 1-based row index within each raw worksheet, matching the
+CPCe point order.
 }
 \examples{
 xlsx <- system.file(

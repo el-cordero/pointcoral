@@ -258,8 +258,10 @@ pc_is_raw_tab_workbook <- function(path) {
 #' CPCe output workbooks often contain one worksheet per image, with raw point
 #' annotation worksheets named like `image_name_raw`. This function reads only
 #' those raw worksheets, skips `deep_cres_..._raw` worksheets by default, keeps
-#' the raw worksheet columns, adds `image_name` as the first column, and adds a
-#' full `major_category` column using a label crosswalk.
+#' the raw worksheet columns, adds `image_name` and `point_index` as the first
+#' columns, and adds a full `major_category` column using a label crosswalk.
+#' `point_index` is a 1-based row index within each raw worksheet, matching the
+#' CPCe point order.
 #'
 #' @param path Path to a CPCe output `.xls` or `.xlsx` workbook.
 #' @param crosswalk Optional label crosswalk data frame or path. When `NULL`,
@@ -270,8 +272,9 @@ pc_is_raw_tab_workbook <- function(path) {
 #' @param sheet_pattern Regular expression used to identify raw worksheets.
 #'   Defaults to sheets ending in `_raw`.
 #'
-#' @return A tibble combining all selected raw worksheets. The original CPCe
-#'   raw major/group column is preserved as `cpce_major_category` when present.
+#' @return A tibble combining all selected raw worksheets. The first columns are
+#'   `image_name` and `point_index`. The original CPCe raw major/group column is
+#'   preserved as `cpce_major_category` when present.
 #' @export
 #'
 #' @examples
@@ -345,7 +348,8 @@ read_cpce_output_raw_tabs <- function(path,
     dat <- dat |>
       dplyr::filter(!dplyr::if_all(dplyr::everything(), ~ is.na(.x))) |>
       dplyr::mutate(raw_data = as.character(.data$raw_data)) |>
-      dplyr::filter(!is.na(.data$raw_data), .data$raw_data != "")
+      dplyr::filter(!is.na(.data$raw_data), .data$raw_data != "") |>
+      dplyr::mutate(point_index = dplyr::row_number())
 
     dat <- dat |>
       dplyr::left_join(xwalk, by = "raw_data") |>
@@ -364,6 +368,7 @@ read_cpce_output_raw_tabs <- function(path,
     dat |>
       dplyr::select(
         dplyr::all_of("image_name"),
+        dplyr::all_of("point_index"),
         dplyr::everything()
       )
   })

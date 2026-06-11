@@ -32,7 +32,6 @@ crosswalk <- read_label_crosswalk(crosswalk_path)
 points_clean <- standardize_labels(points_raw, crosswalk)
 points_split <- split_ml_points(points_clean, split_by = "image", train = 0.5, val = 0, test = 0.5, seed = 3)
 
-readr::write_csv(points_clean, "man/figures/readme-demo/points_clean_sample.csv")
 readr::write_csv(
   summarize_images(points_clean, class_col = "major_category"),
   "man/figures/readme-demo/image_summary_sample.csv"
