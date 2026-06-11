@@ -20,3 +20,7 @@ A QC summary tibble.
 Reports unmapped labels, rare labels, duplicate points, and class balance in a
 compact tibble.
 }
+\examples{
+cpc <- system.file("extdata", "HIW_158_W_U-1.cpc", package = "pointcoral")
+qc_label_summary(read_cpce_file(cpc), label_col = "raw_label")
+}

@@ -60,7 +60,22 @@ summary_major <- summarize_points(
   arrange(desc(percent))
 
 chart_path <- "man/figures/sample-cover-summary.png"
+old_chart_par <- NULL
+chart_device_open <- FALSE
 png(chart_path, width = 1600, height = 950, res = 160, bg = "white")
+chart_device_open <- TRUE
+old_chart_par <- par(no.readonly = TRUE)
+on.exit(
+  {
+    if (isTRUE(chart_device_open)) {
+      if (!is.null(old_chart_par)) {
+        par(old_chart_par)
+      }
+      dev.off()
+    }
+  },
+  add = TRUE
+)
 par(mar = c(5, 15, 4, 2), family = "sans")
 bar_cols <- c(
   "#33cc66", "#3399ff", "#d8c28a", "#8b0000", "#cc3366",
@@ -85,7 +100,10 @@ text(
   labels = paste0(round(summary_major$percent, 1), "%"),
   cex = 0.8
 )
+par(old_chart_par)
+old_chart_par <- NULL
 dev.off()
+chart_device_open <- FALSE
 
 # 3. Patch contact sheet ---------------------------------------------------
 patch_dir <- tempfile("pointcoral-readme-patches-")

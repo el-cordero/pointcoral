@@ -24,3 +24,9 @@ A named list of written file paths.
 Writes image-, transect-, and site-level summaries for one or more class
 columns, plus a class lookup table when possible.
 }
+\examples{
+cpc <- system.file("extdata", "HIW_158_W_U-1.cpc", package = "pointcoral")
+pts <- read_cpce_file(cpc)
+out_dir <- file.path(tempdir(), "pointcoral-summary-example")
+write_summary_tables(pts, out_dir, class_cols = "raw_label")
+}

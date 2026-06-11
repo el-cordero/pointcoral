@@ -20,3 +20,12 @@ A tibble with class labels and IDs.
 Produces a distinct class lookup table from point data. If no usable class ID
 column exists, IDs are assigned in sorted class order starting at 0.
 }
+\examples{
+cpc <- system.file("extdata", "HIW_158_W_U-1.cpc", package = "pointcoral")
+xwalk <- system.file(
+  "extdata", "pointcoral_example_crosswalk.csv",
+  package = "pointcoral"
+)
+pts <- standardize_labels(read_cpce_file(cpc), read_label_crosswalk(xwalk))
+make_class_lookup(pts, class_col = "ml_class")
+}

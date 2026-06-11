@@ -21,3 +21,7 @@ Recursively reads supported CPCe-related files from a folder. \code{.cpc} files
 are parsed with \code{\link[=read_cpce_file]{read_cpce_file()}}. CSV/TSV/XLS/XLSX files are attempted with
 \code{\link[=read_cpce_export]{read_cpce_export()}}.
 }
+\examples{
+example_dir <- system.file("extdata", package = "pointcoral")
+read_cpce_folder(example_dir, image_root = example_dir, recursive = FALSE)
+}

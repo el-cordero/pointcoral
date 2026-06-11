@@ -238,6 +238,15 @@ standardize_labels <- function(points,
 #'
 #' @return A tibble report.
 #' @export
+#'
+#' @examples
+#' cpc <- system.file("extdata", "HIW_158_W_U-1.cpc", package = "pointcoral")
+#' xwalk <- system.file(
+#'   "extdata", "pointcoral_example_crosswalk.csv",
+#'   package = "pointcoral"
+#' )
+#' pts <- read_cpce_file(cpc)
+#' check_crosswalk(pts, read_label_crosswalk(xwalk))
 check_crosswalk <- function(points, crosswalk, by = NULL) {
   points <- tibble::as_tibble(points)
   crosswalk <- tibble::as_tibble(crosswalk)
@@ -330,6 +339,15 @@ check_crosswalk <- function(points, crosswalk, by = NULL) {
 #'
 #' @return A tibble with class labels and IDs.
 #' @export
+#'
+#' @examples
+#' cpc <- system.file("extdata", "HIW_158_W_U-1.cpc", package = "pointcoral")
+#' xwalk <- system.file(
+#'   "extdata", "pointcoral_example_crosswalk.csv",
+#'   package = "pointcoral"
+#' )
+#' pts <- standardize_labels(read_cpce_file(cpc), read_label_crosswalk(xwalk))
+#' make_class_lookup(pts, class_col = "ml_class")
 make_class_lookup <- function(points, class_col = "ml_class", id_col = "class_id") {
   points <- tibble::as_tibble(points)
   pc_require_columns(points, class_col, "points")

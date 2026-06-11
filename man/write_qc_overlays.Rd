@@ -21,3 +21,13 @@ A manifest tibble of written overlays.
 \description{
 Writes one overlay image per source image.
 }
+\examples{
+example_dir <- system.file("extdata", package = "pointcoral")
+pts <- read_cpce_file(file.path(example_dir, "HIW_158_W_U-1.cpc"))
+write_qc_overlays(
+  pts[1:5, ],
+  image_root = example_dir,
+  out_dir = file.path(tempdir(), "pointcoral-qc-example"),
+  label_col = "raw_label"
+)
+}

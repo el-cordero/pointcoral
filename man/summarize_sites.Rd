@@ -17,3 +17,7 @@ A site-level summary tibble.
 \description{
 Summarize points at site level
 }
+\examples{
+cpc <- system.file("extdata", "HIW_158_W_U-1.cpc", package = "pointcoral")
+summarize_sites(read_cpce_file(cpc), class_col = "raw_label")
+}

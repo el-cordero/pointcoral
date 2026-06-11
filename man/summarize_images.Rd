@@ -17,3 +17,7 @@ An image-level summary tibble.
 \description{
 Summarize points at image level
 }
+\examples{
+cpc <- system.file("extdata", "HIW_158_W_U-1.cpc", package = "pointcoral")
+summarize_images(read_cpce_file(cpc), class_col = "raw_label")
+}

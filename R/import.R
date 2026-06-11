@@ -386,6 +386,13 @@ read_cpce_output_raw_tabs <- function(path,
 #'
 #' @return A tidy point table when point-like columns are present.
 #' @export
+#'
+#' @examples
+#' cpc <- system.file("extdata", "HIW_158_W_U-1.cpc", package = "pointcoral")
+#' pts <- read_cpce_file(cpc)
+#' tmp <- tempfile(fileext = ".csv")
+#' readr::write_csv(pts[, c("image_file", "point_id", "x_px", "y_px", "raw_label")], tmp)
+#' read_cpce_export(tmp)
 read_cpce_export <- function(path) {
   dat <- pc_read_table(path)
 
@@ -474,6 +481,10 @@ read_cpce_export <- function(path) {
 #'
 #' @return A combined tidy point table.
 #' @export
+#'
+#' @examples
+#' example_dir <- system.file("extdata", package = "pointcoral")
+#' read_cpce_folder(example_dir, image_root = example_dir, recursive = FALSE)
 read_cpce_folder <- function(path, image_root = NULL, recursive = TRUE) {
   if (!dir.exists(path)) {
     cli::cli_abort("CPCe folder does not exist: {.file {path}}")
@@ -533,6 +544,12 @@ read_cpce_folder <- function(path, image_root = NULL, recursive = TRUE) {
 #'
 #' @return A point table with `image_path`, `image_width`, and `image_height`.
 #' @export
+#'
+#' @examples
+#' example_dir <- system.file("extdata", package = "pointcoral")
+#' pts <- read_cpce_file(file.path(example_dir, "HIW_158_W_U-1.cpc"))
+#' pts$image_path <- NA_character_
+#' match_images(pts, image_root = example_dir)
 match_images <- function(points, image_root, image_col = "image_file") {
   points <- tibble::as_tibble(points)
   if (!dir.exists(image_root)) {

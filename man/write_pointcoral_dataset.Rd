@@ -42,3 +42,16 @@ workflow uses the raw CPCe labels already stored in the point table. A
 crosswalk is an optional standardization layer for full labels, ecological
 major classes, and custom ML classes.
 }
+\examples{
+example_dir <- system.file("extdata", package = "pointcoral")
+pts <- read_cpce_folder(example_dir, image_root = example_dir, recursive = FALSE)
+write_pointcoral_dataset(
+  points = pts,
+  image_root = example_dir,
+  out_dir = file.path(tempdir(), "pointcoral-dataset-example"),
+  make_patches = FALSE,
+  make_masks = FALSE,
+  make_qc = FALSE,
+  class_col = "raw_label"
+)
+}

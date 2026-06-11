@@ -26,3 +26,8 @@ A \code{magick-image} overlay.
 \description{
 Draws point halos and labels on an image and returns a \code{magick-image} object.
 }
+\examples{
+example_dir <- system.file("extdata", package = "pointcoral")
+pts <- read_cpce_file(file.path(example_dir, "HIW_158_W_U-1.cpc"))
+plot_points_on_image(pts$image_path[1], pts[1:5, ], label_col = "raw_label")
+}

@@ -10,6 +10,10 @@
 #' @return A tibble with `image_path`, `image_id`, `x_px`, `y_px`, `label`,
 #'   `class_id`, `split`, and available metadata.
 #' @export
+#'
+#' @examples
+#' cpc <- system.file("extdata", "HIW_158_W_U-1.cpc", package = "pointcoral")
+#' make_ml_points(read_cpce_file(cpc), class_col = "raw_label")
 make_ml_points <- function(points, image_root = NULL, class_col = "ml_class") {
   points <- tibble::as_tibble(points)
   if (!is.null(image_root)) {
@@ -67,6 +71,11 @@ make_ml_points <- function(points, image_root = NULL, class_col = "ml_class") {
 #'
 #' @return The input table with `split` and `split_unit` columns.
 #' @export
+#'
+#' @examples
+#' example_dir <- system.file("extdata", package = "pointcoral")
+#' pts <- read_cpce_folder(example_dir, image_root = example_dir, recursive = FALSE)
+#' split_ml_points(pts, split_by = "image", train = 0.5, val = 0, test = 0.5)
 split_ml_points <- function(points,
                             split_by = c("image", "transect", "site"),
                             train = 0.7,
@@ -140,6 +149,19 @@ split_ml_points <- function(points,
 #'
 #' @return A patch manifest tibble.
 #' @export
+#'
+#' @examples
+#' example_dir <- system.file("extdata", package = "pointcoral")
+#' pts <- read_cpce_file(file.path(example_dir, "HIW_158_W_U-1.cpc"))
+#' out_dir <- file.path(tempdir(), "pointcoral-patches-example")
+#' extract_point_patches(
+#'   pts[1:3, ],
+#'   image_root = example_dir,
+#'   out_dir = out_dir,
+#'   patch_size = 64,
+#'   class_col = "raw_label",
+#'   edge = "pad"
+#' )
 extract_point_patches <- function(points,
                                   image_root,
                                   out_dir,
@@ -258,6 +280,11 @@ extract_point_patches <- function(points,
 #'
 #' @return A named list of written file paths.
 #' @export
+#'
+#' @examples
+#' cpc <- system.file("extdata", "HIW_158_W_U-1.cpc", package = "pointcoral")
+#' ml <- make_ml_points(read_cpce_file(cpc), class_col = "raw_label")
+#' write_ml_points_csv(ml, file.path(tempdir(), "pointcoral-ml-csv-example"))
 write_ml_points_csv <- function(points, out_dir) {
   dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
   points <- tibble::as_tibble(points)
@@ -304,6 +331,18 @@ write_ml_points_csv <- function(points, out_dir) {
 #'
 #' @return A mask manifest tibble.
 #' @export
+#'
+#' @examples
+#' example_dir <- system.file("extdata", package = "pointcoral")
+#' pts <- read_cpce_file(file.path(example_dir, "HIW_158_W_U-1.cpc"))
+#' out_dir <- file.path(tempdir(), "pointcoral-masks-example")
+#' make_sparse_masks(
+#'   pts[1:3, ],
+#'   image_root = example_dir,
+#'   out_dir = out_dir,
+#'   radius = 2,
+#'   class_col = "raw_label"
+#' )
 make_sparse_masks <- function(points,
                               image_root,
                               out_dir,
@@ -381,6 +420,13 @@ make_sparse_masks <- function(points,
 #'
 #' @return Path to the written CSV.
 #' @export
+#'
+#' @examples
+#' cpc <- system.file("extdata", "HIW_158_W_U-1.cpc", package = "pointcoral")
+#' export_coralnet_points(
+#'   read_cpce_file(cpc),
+#'   file.path(tempdir(), "pointcoral-coralnet-example")
+#' )
 export_coralnet_points <- function(points, out_dir) {
   dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
   ml <- make_ml_points(points)
@@ -409,6 +455,16 @@ export_coralnet_points <- function(points, out_dir) {
 #'
 #' @return A patch manifest tibble.
 #' @export
+#'
+#' @examples
+#' example_dir <- system.file("extdata", package = "pointcoral")
+#' pts <- read_cpce_file(file.path(example_dir, "HIW_158_W_U-1.cpc"))
+#' export_yolo_classification(
+#'   pts[20:25, ],
+#'   image_root = example_dir,
+#'   out_dir = file.path(tempdir(), "pointcoral-yolo-example"),
+#'   patch_size = 64
+#' )
 export_yolo_classification <- function(points, image_root, out_dir, patch_size = 224) {
   extract_point_patches(
     points = points,
@@ -432,6 +488,16 @@ export_yolo_classification <- function(points, image_root, out_dir, patch_size =
 #'
 #' @return A mask manifest tibble.
 #' @export
+#'
+#' @examples
+#' example_dir <- system.file("extdata", package = "pointcoral")
+#' pts <- read_cpce_file(file.path(example_dir, "HIW_158_W_U-1.cpc"))
+#' export_segformer_sparse(
+#'   pts[1:3, ],
+#'   image_root = example_dir,
+#'   out_dir = file.path(tempdir(), "pointcoral-segformer-example"),
+#'   radius = 2
+#' )
 export_segformer_sparse <- function(points, image_root, out_dir, radius = 3) {
   make_sparse_masks(
     points = points,

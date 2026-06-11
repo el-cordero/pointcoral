@@ -21,3 +21,7 @@ A tibble with \code{image_path}, \code{image_id}, \code{x_px}, \code{y_px}, \cod
 Creates a compact table suitable for patch classification or weakly
 supervised segmentation workflows.
 }
+\examples{
+cpc <- system.file("extdata", "HIW_158_W_U-1.cpc", package = "pointcoral")
+make_ml_points(read_cpce_file(cpc), class_col = "raw_label")
+}

@@ -9,6 +9,11 @@
 #'
 #' @return A `magick-image` overlay.
 #' @export
+#'
+#' @examples
+#' example_dir <- system.file("extdata", package = "pointcoral")
+#' pts <- read_cpce_file(file.path(example_dir, "HIW_158_W_U-1.cpc"))
+#' plot_points_on_image(pts$image_path[1], pts[1:5, ], label_col = "raw_label")
 plot_points_on_image <- function(image_path,
                                  points,
                                  label_col = "ml_class",
@@ -27,11 +32,20 @@ plot_points_on_image <- function(image_path,
   img <- magick::image_read(image_path)
   info <- magick::image_info(img)
   tmp <- tempfile(fileext = ".png")
+  oldpar <- NULL
+  device_open <- FALSE
 
   grDevices::png(tmp, width = info$width[1], height = info$height[1], bg = "white")
+  device_open <- TRUE
+  oldpar <- graphics::par(no.readonly = TRUE)
   on.exit(
     {
-      grDevices::dev.off()
+      if (isTRUE(device_open)) {
+        if (!is.null(oldpar)) {
+          graphics::par(oldpar)
+        }
+        grDevices::dev.off()
+      }
       unlink(tmp)
     },
     add = TRUE
@@ -94,8 +108,10 @@ plot_points_on_image <- function(image_path,
     )
   }
 
+  graphics::par(oldpar)
+  oldpar <- NULL
   grDevices::dev.off()
-  on.exit(NULL, add = FALSE)
+  device_open <- FALSE
   out <- magick::image_read(tmp)
   unlink(tmp)
   out
@@ -112,6 +128,16 @@ plot_points_on_image <- function(image_path,
 #'
 #' @return A manifest tibble of written overlays.
 #' @export
+#'
+#' @examples
+#' example_dir <- system.file("extdata", package = "pointcoral")
+#' pts <- read_cpce_file(file.path(example_dir, "HIW_158_W_U-1.cpc"))
+#' write_qc_overlays(
+#'   pts[1:5, ],
+#'   image_root = example_dir,
+#'   out_dir = file.path(tempdir(), "pointcoral-qc-example"),
+#'   label_col = "raw_label"
+#' )
 write_qc_overlays <- function(points,
                               image_root,
                               out_dir,

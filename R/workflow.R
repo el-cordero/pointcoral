@@ -17,6 +17,19 @@
 #'
 #' @return A list containing paths, tibbles, and manifests.
 #' @export
+#'
+#' @examples
+#' example_dir <- system.file("extdata", package = "pointcoral")
+#' pts <- read_cpce_folder(example_dir, image_root = example_dir, recursive = FALSE)
+#' write_pointcoral_dataset(
+#'   points = pts,
+#'   image_root = example_dir,
+#'   out_dir = file.path(tempdir(), "pointcoral-dataset-example"),
+#'   make_patches = FALSE,
+#'   make_masks = FALSE,
+#'   make_qc = FALSE,
+#'   class_col = "raw_label"
+#' )
 write_pointcoral_dataset <- function(points,
                                      image_root,
                                      out_dir,
@@ -163,6 +176,19 @@ write_pointcoral_dataset <- function(points,
 #'
 #' @return A list from [write_pointcoral_dataset()].
 #' @export
+#'
+#' @examples
+#' example_dir <- system.file("extdata", package = "pointcoral")
+#' run_pointcoral(
+#'   cpce_dir = example_dir,
+#'   image_root = example_dir,
+#'   out_dir = file.path(tempdir(), "pointcoral-run-example"),
+#'   recursive = FALSE,
+#'   make_patches = FALSE,
+#'   make_masks = FALSE,
+#'   make_qc = FALSE,
+#'   class_col = "raw_label"
+#' )
 run_pointcoral <- function(cpce_dir,
                            image_root,
                            out_dir,

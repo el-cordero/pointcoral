@@ -8,6 +8,10 @@
 #'
 #' @return A validation report tibble.
 #' @export
+#'
+#' @examples
+#' cpc <- system.file("extdata", "HIW_158_W_U-1.cpc", package = "pointcoral")
+#' validate_points(read_cpce_file(cpc))
 validate_points <- function(points) {
   points <- tibble::as_tibble(points)
 
@@ -140,6 +144,10 @@ validate_points <- function(points) {
 #'
 #' @return A QC summary tibble.
 #' @export
+#'
+#' @examples
+#' cpc <- system.file("extdata", "HIW_158_W_U-1.cpc", package = "pointcoral")
+#' qc_label_summary(read_cpce_file(cpc), label_col = "raw_label")
 qc_label_summary <- function(points, label_col = "ml_class", rare_threshold = 1L) {
   points <- tibble::as_tibble(points)
   label_col <- pc_resolve_label_col(points, preferred = label_col, arg = "label_col")

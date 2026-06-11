@@ -25,6 +25,15 @@ subclasses used for analysis.
 cloud APIs, Python, or any closed platform. It is built to run fully on your own
 computer with your own files.
 
+## Reference
+
+The CPCe software and random point-count method are described in:
+
+Kohler, K.E. and S.M. Gill (2006). "Coral Point Count with Excel extensions
+(CPCe): A Visual Basic program for the determination of coral and substrate
+coverage using random point count methodology." *Computers & Geosciences* 32(9):
+1259-1269. DOI: [10.1016/j.cageo.2005.11.009](https://doi.org/10.1016/j.cageo.2005.11.009).
+
 ## What this looks like
 
 The package starts with CPCe files and reef images, then produces clean tables,

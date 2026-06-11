@@ -21,3 +21,12 @@ Reports labels in CPCe data missing from the crosswalk, crosswalk labels not
 present in current data, duplicate mappings, missing class IDs, and excluded
 classes.
 }
+\examples{
+cpc <- system.file("extdata", "HIW_158_W_U-1.cpc", package = "pointcoral")
+xwalk <- system.file(
+  "extdata", "pointcoral_example_crosswalk.csv",
+  package = "pointcoral"
+)
+pts <- read_cpce_file(cpc)
+check_crosswalk(pts, read_label_crosswalk(xwalk))
+}

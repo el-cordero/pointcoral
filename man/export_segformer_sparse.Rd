@@ -22,3 +22,13 @@ A mask manifest tibble.
 Writes sparse weak-label masks and a manifest. These are not dense
 segmentation annotations.
 }
+\examples{
+example_dir <- system.file("extdata", package = "pointcoral")
+pts <- read_cpce_file(file.path(example_dir, "HIW_158_W_U-1.cpc"))
+export_segformer_sparse(
+  pts[1:3, ],
+  image_root = example_dir,
+  out_dir = file.path(tempdir(), "pointcoral-segformer-example"),
+  radius = 2
+)
+}

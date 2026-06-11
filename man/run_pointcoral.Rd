@@ -44,3 +44,16 @@ writes analysis/ML-ready outputs. A crosswalk is optional. Without one,
 it standardizes those raw labels to full labels, ecological classes, and
 custom ML classes.
 }
+\examples{
+example_dir <- system.file("extdata", package = "pointcoral")
+run_pointcoral(
+  cpce_dir = example_dir,
+  image_root = example_dir,
+  out_dir = file.path(tempdir(), "pointcoral-run-example"),
+  recursive = FALSE,
+  make_patches = FALSE,
+  make_masks = FALSE,
+  make_qc = FALSE,
+  class_col = "raw_label"
+)
+}

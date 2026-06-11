@@ -24,3 +24,8 @@ A summary tibble with \code{n}, \code{n_points}, and \code{percent}.
 Counts point labels by grouping variables and returns percent cover within
 each group.
 }
+\examples{
+cpc <- system.file("extdata", "HIW_158_W_U-1.cpc", package = "pointcoral")
+pts <- read_cpce_file(cpc)
+summarize_points(pts, by = "image_id", class_col = "raw_label")
+}

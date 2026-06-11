@@ -40,3 +40,15 @@ Writes sparse masks where point neighborhoods contain \code{class_id} values and
 all unlabeled pixels are \code{ignore_index}. These are weak labels, not dense
 human-annotated segmentation masks.
 }
+\examples{
+example_dir <- system.file("extdata", package = "pointcoral")
+pts <- read_cpce_file(file.path(example_dir, "HIW_158_W_U-1.cpc"))
+out_dir <- file.path(tempdir(), "pointcoral-masks-example")
+make_sparse_masks(
+  pts[1:3, ],
+  image_root = example_dir,
+  out_dir = out_dir,
+  radius = 2,
+  class_col = "raw_label"
+)
+}

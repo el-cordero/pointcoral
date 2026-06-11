@@ -19,3 +19,10 @@ pointcoral tidy point schema. Project-specific ecological "Data Summary"
 workbooks are not fully translated yet because representative workbook
 fixtures are not bundled with the package.
 }
+\examples{
+cpc <- system.file("extdata", "HIW_158_W_U-1.cpc", package = "pointcoral")
+pts <- read_cpce_file(cpc)
+tmp <- tempfile(fileext = ".csv")
+readr::write_csv(pts[, c("image_file", "point_id", "x_px", "y_px", "raw_label")], tmp)
+read_cpce_export(tmp)
+}

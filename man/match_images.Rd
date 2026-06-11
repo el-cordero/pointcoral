@@ -21,3 +21,9 @@ Matches \code{image_file} values in a point table to files under \code{image_roo
 Image dimensions are filled in, and pixel coordinates are calculated when
 CPCe and image dimensions are available.
 }
+\examples{
+example_dir <- system.file("extdata", package = "pointcoral")
+pts <- read_cpce_file(file.path(example_dir, "HIW_158_W_U-1.cpc"))
+pts$image_path <- NA_character_
+match_images(pts, image_root = example_dir)
+}

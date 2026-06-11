@@ -9,6 +9,11 @@
 #'
 #' @return A summary tibble with `n`, `n_points`, and `percent`.
 #' @export
+#'
+#' @examples
+#' cpc <- system.file("extdata", "HIW_158_W_U-1.cpc", package = "pointcoral")
+#' pts <- read_cpce_file(cpc)
+#' summarize_points(pts, by = "image_id", class_col = "raw_label")
 summarize_points <- function(points,
                              by = c("site", "transect", "image_id"),
                              class_col = "major_category") {
@@ -50,6 +55,10 @@ summarize_points <- function(points,
 #'
 #' @return An image-level summary tibble.
 #' @export
+#'
+#' @examples
+#' cpc <- system.file("extdata", "HIW_158_W_U-1.cpc", package = "pointcoral")
+#' summarize_images(read_cpce_file(cpc), class_col = "raw_label")
 summarize_images <- function(points, class_col = "major_category") {
   summarize_points(points, by = c("site", "transect", "image_id"), class_col = class_col)
 }
@@ -61,6 +70,10 @@ summarize_images <- function(points, class_col = "major_category") {
 #'
 #' @return A transect-level summary tibble.
 #' @export
+#'
+#' @examples
+#' cpc <- system.file("extdata", "HIW_158_W_U-1.cpc", package = "pointcoral")
+#' summarize_transects(read_cpce_file(cpc), class_col = "raw_label")
 summarize_transects <- function(points, class_col = "major_category") {
   summarize_points(points, by = c("site", "transect"), class_col = class_col)
 }
@@ -72,6 +85,10 @@ summarize_transects <- function(points, class_col = "major_category") {
 #'
 #' @return A site-level summary tibble.
 #' @export
+#'
+#' @examples
+#' cpc <- system.file("extdata", "HIW_158_W_U-1.cpc", package = "pointcoral")
+#' summarize_sites(read_cpce_file(cpc), class_col = "raw_label")
 summarize_sites <- function(points, class_col = "major_category") {
   summarize_points(points, by = "site", class_col = class_col)
 }
@@ -87,6 +104,12 @@ summarize_sites <- function(points, class_col = "major_category") {
 #'
 #' @return A named list of written file paths.
 #' @export
+#'
+#' @examples
+#' cpc <- system.file("extdata", "HIW_158_W_U-1.cpc", package = "pointcoral")
+#' pts <- read_cpce_file(cpc)
+#' out_dir <- file.path(tempdir(), "pointcoral-summary-example")
+#' write_summary_tables(pts, out_dir, class_cols = "raw_label")
 write_summary_tables <- function(points,
                                  out_dir,
                                  class_cols = c("major_category", "clean_label", "ml_class")) {

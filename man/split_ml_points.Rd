@@ -29,3 +29,8 @@ The input table with \code{split} and \code{split_unit} columns.
 Assigns split labels by image, transect, or site to avoid leakage. Splits are
 reproducible with \code{seed}.
 }
+\examples{
+example_dir <- system.file("extdata", package = "pointcoral")
+pts <- read_cpce_folder(example_dir, image_root = example_dir, recursive = FALSE)
+split_ml_points(pts, split_by = "image", train = 0.5, val = 0, test = 0.5)
+}

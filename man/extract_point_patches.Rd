@@ -33,3 +33,16 @@ A patch manifest tibble.
 \description{
 Extracts square image patches centered on CPCe points and writes a manifest.
 }
+\examples{
+example_dir <- system.file("extdata", package = "pointcoral")
+pts <- read_cpce_file(file.path(example_dir, "HIW_158_W_U-1.cpc"))
+out_dir <- file.path(tempdir(), "pointcoral-patches-example")
+extract_point_patches(
+  pts[1:3, ],
+  image_root = example_dir,
+  out_dir = out_dir,
+  patch_size = 64,
+  class_col = "raw_label",
+  edge = "pad"
+)
+}

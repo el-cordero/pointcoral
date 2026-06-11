@@ -22,3 +22,13 @@ A patch manifest tibble.
 Extracts point-centered patches into split/class folders and writes a patch
 manifest.
 }
+\examples{
+example_dir <- system.file("extdata", package = "pointcoral")
+pts <- read_cpce_file(file.path(example_dir, "HIW_158_W_U-1.cpc"))
+export_yolo_classification(
+  pts[20:25, ],
+  image_root = example_dir,
+  out_dir = file.path(tempdir(), "pointcoral-yolo-example"),
+  patch_size = 64
+)
+}

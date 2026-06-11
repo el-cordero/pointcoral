@@ -17,3 +17,10 @@ Path to the written CSV.
 \description{
 This helper writes local point labels only. It does not connect to CoralNet.
 }
+\examples{
+cpc <- system.file("extdata", "HIW_158_W_U-1.cpc", package = "pointcoral")
+export_coralnet_points(
+  read_cpce_file(cpc),
+  file.path(tempdir(), "pointcoral-coralnet-example")
+)
+}

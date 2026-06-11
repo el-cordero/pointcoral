@@ -1,14 +1,18 @@
 Package: pointcoral
-Title: Local CPCe Point-Count Processing for Coral Photoquadrats
+Title: Local Point-Count Processing for Coral Photoquadrats
 Version: 0.0.0.9000
 Authors@R:
     person("Elvin", "Cordero", email = "elvin.cordero@seamountgeo.com", role = c("aut", "cre"))
-Description: Imports CPCe point-count annotations and related exported
-    tables, standardizes labels with a user-supplied crosswalk, creates
-    ecological cover summaries, writes quality-control overlays, and exports
-    machine-learning-ready point labels, image patches, sparse masks, and
-    train/validation/test splits. The package is fully local and does not
-    depend on MERMAID, mermaidr, CoralNet accounts, or other closed platforms.
+Description: Imports Coral Point Count with Excel extensions (CPCe)
+    point-count annotations and related exported tables, standardizes labels
+    with a user-supplied crosswalk, creates ecological cover summaries, writes
+    quality-control overlays, and exports machine-learning-ready point labels,
+    image patches, sparse masks, and train/validation/test splits. The package
+    is fully local and does not depend on third-party web platforms, user
+    accounts, or other closed services. CPCe methods are described by Kohler
+    and Gill (2006) "Coral Point Count with Excel extensions (CPCe): A Visual
+    Basic program for the determination of coral and substrate coverage using
+    random point count methodology" <doi:10.1016/j.cageo.2005.11.009>.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)

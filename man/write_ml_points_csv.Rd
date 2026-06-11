@@ -18,3 +18,8 @@ A named list of written file paths.
 Writes \code{labels.csv}, \code{class_lookup.csv}, and split-specific label CSVs when a
 \code{split} column is present.
 }
+\examples{
+cpc <- system.file("extdata", "HIW_158_W_U-1.cpc", package = "pointcoral")
+ml <- make_ml_points(read_cpce_file(cpc), class_col = "raw_label")
+write_ml_points_csv(ml, file.path(tempdir(), "pointcoral-ml-csv-example"))
+}

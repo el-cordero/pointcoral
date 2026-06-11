@@ -17,3 +17,7 @@ Checks required fields, missing coordinates, duplicated point IDs within
 images, coordinates outside image bounds, missing image files, and missing
 image dimensions.
 }
+\examples{
+cpc <- system.file("extdata", "HIW_158_W_U-1.cpc", package = "pointcoral")
+validate_points(read_cpce_file(cpc))
+}
