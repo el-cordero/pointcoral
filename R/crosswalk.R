@@ -16,7 +16,7 @@
 #' )
 #' read_label_crosswalk(xwalk)
 read_label_crosswalk <- function(path) {
-  crosswalk <- pc_read_table(path)
+  crosswalk <- pc_read_table(path, na = c("", "N/A", "#N/A"))
 
   copy_first <- function(df, target, candidates) {
     if (target %in% names(df)) {

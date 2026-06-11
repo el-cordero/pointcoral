@@ -35,6 +35,13 @@ test_that("crosswalk reading, checking, and standardization work", {
   xwalk <- read_label_crosswalk(file.path(example_dir, "pointcoral_example_crosswalk.csv"))
 
   expect_true(all(c("raw_code", "ml_class", "class_id") %in% names(xwalk)))
+  expect_true("NA" %in% xwalk$raw_code)
+  expect_equal(xwalk$full_label[xwalk$raw_code == "NA"][1], "Neogoniolithon accretum")
+  expect_equal(xwalk$full_label[xwalk$raw_code == "MD"][1], "Madracis decactis")
+  expect_equal(xwalk$full_label[xwalk$raw_code == "MM"][1], "Madracis mirabilis")
+  expect_equal(xwalk$full_label[xwalk$raw_code == "MF"][1], "Mycetophyllia ferox")
+  expect_equal(xwalk$full_label[xwalk$raw_code == "PD"][1], "Porites divaricata")
+  expect_equal(xwalk$full_label[xwalk$raw_code == "PF"][1], "Porites furcata")
 
   report <- check_crosswalk(pts, xwalk)
   expect_false("missing_from_crosswalk" %in% report$issue_type)

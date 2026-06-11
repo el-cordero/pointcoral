@@ -46,15 +46,15 @@ pc_bool <- function(x, default = TRUE) {
   out
 }
 
-pc_read_table <- function(path) {
+pc_read_table <- function(path, na = c("", "NA")) {
   ext <- tolower(tools::file_ext(path))
 
   out <- switch(ext,
-    csv = readr::read_csv(path, show_col_types = FALSE),
-    tsv = readr::read_tsv(path, show_col_types = FALSE),
-    txt = readr::read_delim(path, delim = "\t", show_col_types = FALSE),
-    xls = readxl::read_excel(path),
-    xlsx = readxl::read_excel(path),
+    csv = readr::read_csv(path, na = na, show_col_types = FALSE),
+    tsv = readr::read_tsv(path, na = na, show_col_types = FALSE),
+    txt = readr::read_delim(path, delim = "\t", na = na, show_col_types = FALSE),
+    xls = readxl::read_excel(path, na = na),
+    xlsx = readxl::read_excel(path, na = na),
     cli::cli_abort("Unsupported table extension: {.file {path}}")
   )
 
