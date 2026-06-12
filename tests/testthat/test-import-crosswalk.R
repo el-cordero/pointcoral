@@ -11,8 +11,8 @@ test_that("sample CPCe files are parsed and matched to sibling images", {
   expect_equal(nrow(pts[[2]]), 100)
   expect_true(all(c("cpce_x", "cpce_y", "x_px", "y_px", "raw_code") %in% names(pts[[1]])))
   expect_true(file.exists(pts[[1]]$image_path[1]))
-  expect_equal(pts[[1]]$image_width[1], 3040L)
-  expect_equal(pts[[2]]$image_height[1], 1917L)
+  expect_equal(pts[[1]]$image_width[1], 900L)
+  expect_equal(pts[[2]]$image_height[1], 570L)
 })
 
 test_that("match_images fills image paths and dimensions", {
@@ -25,8 +25,8 @@ test_that("match_images fills image paths and dimensions", {
   matched <- match_images(pts, image_root = example_dir)
 
   expect_true(all(!is.na(matched$image_path)))
-  expect_equal(unique(matched$image_width), 3040L)
-  expect_equal(unique(matched$image_height), 1912L)
+  expect_equal(unique(matched$image_width), 900L)
+  expect_equal(unique(matched$image_height), 566L)
 })
 
 test_that("crosswalk reading, checking, and standardization work", {

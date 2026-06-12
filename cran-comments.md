@@ -4,7 +4,17 @@
 
 ## R CMD check results
 
-0 errors | 0 warnings | 0 notes
+0 errors | 0 warnings | 1 note
+
+The only local note was:
+
+```text
+checking for future file timestamps ... NOTE
+unable to verify current time
+```
+
+This appears to be an environment-specific time verification issue in the local
+check environment, not a package content issue.
 
 ## Downstream dependencies
 
