@@ -1,6 +1,6 @@
-# pointcoral 0.0.0.9000
+# pointcoral 0.1.0
 
-## Initial package scaffold (2026-06-07)
+## Initial CRAN submission candidate
 
 - Added CPCe `.cpc` import, image matching, label crosswalk support,
   ecological summaries, ML point CSV export, point patch extraction, sparse

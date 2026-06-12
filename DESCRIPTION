@@ -1,6 +1,6 @@
 Package: pointcoral
 Title: Local Point-Count Processing for Coral Photoquadrats
-Version: 0.0.0.9000
+Version: 0.1.0
 Authors@R:
     person("Elvin", "Cordero", email = "elvin.cordero@seamountgeo.com", role = c("aut", "cre"))
 Description: Imports Coral Point Count with Excel extensions (CPCe)

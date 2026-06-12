@@ -4,7 +4,7 @@
 \name{pointcoral-package}
 \alias{pointcoral}
 \alias{pointcoral-package}
-\title{pointcoral: Local Point-Count Processing for Coral Photoquadrats}
+\title{pointcoral:Point-Count Processing for Coral Photoquadrats}
 \description{
 pointcoral imports Coral Point Count with Excel extensions (CPCe) point-count
 annotations, uses the raw labels already stored in CPCe files for bare
@@ -12,11 +12,13 @@ workflows, optionally standardizes labels with user-supplied crosswalks,
 writes ecological summaries, creates quality-control (QC) overlays, and
 exports local machine-learning-ready datasets.
 }
-\references{
-Kohler, K.E. and S.M. Gill (2006)
-"Coral Point Count with Excel extensions (CPCe): A Visual Basic program for
-the determination of coral and substrate coverage using random point count
-methodology" \doi{10.1016/j.cageo.2005.11.009}.
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/el-cordero/pointcoral}
+  \item Report bugs at \url{https://github.com/el-cordero/pointcoral/issues}
+}
+
 }
 \author{
 \strong{Maintainer}: Elvin Cordero \email{elvin.cordero@seamountgeo.com}

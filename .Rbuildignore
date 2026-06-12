@@ -5,4 +5,6 @@
 ^dev-notes$
 ^data-raw$
 ^README\.Rmd$
+^LICENSE\.md$
+^cran-comments\.md$
 ^\.DS_Store$
