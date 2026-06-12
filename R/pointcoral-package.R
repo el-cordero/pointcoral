@@ -1,4 +1,4 @@
-#' pointcoral: Local Point-Count Processing for Coral Photoquadrats
+#' pointcoral:Point-Count Processing for Coral Photoquadrats
 #'
 #' pointcoral imports Coral Point Count with Excel extensions (CPCe) point-count
 #' annotations, uses the raw labels already stored in CPCe files for bare
@@ -6,10 +6,6 @@
 #' writes ecological summaries, creates quality-control (QC) overlays, and
 #' exports local machine-learning-ready datasets.
 #'
-#' @references Kohler, K.E. and S.M. Gill (2006)
-#'   "Coral Point Count with Excel extensions (CPCe): A Visual Basic program for
-#'   the determination of coral and substrate coverage using random point count
-#'   methodology" \doi{10.1016/j.cageo.2005.11.009}.
 #'
 #' @keywords internal
 #' @importFrom rlang .data
