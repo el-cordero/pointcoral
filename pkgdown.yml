@@ -1,0 +1,14 @@
+pandoc: 3.8.3
+pkgdown: 2.2.1
+pkgdown_sha: ~
+articles:
+  articles/citation: citation.html
+  articles/coordinates-and-qc: coordinates-and-qc.html
+  articles/examples: examples.html
+  articles/interpretation-limitations: interpretation-limitations.html
+  articles/machine-learning-outputs: machine-learning-outputs.html
+  pointcoral-workflow: pointcoral-workflow.html
+last_built: 2026-07-18T15:43Z
+urls:
+  reference: https://el-cordero.github.io/pointcoral/reference
+  article: https://el-cordero.github.io/pointcoral/articles
