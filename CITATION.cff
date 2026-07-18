@@ -1,0 +1,29 @@
+cff-version: 1.2.0
+message: "If you use pointcoral, please cite the package and the CPCe method when applicable."
+title: "pointcoral: Local Point-Count Processing for Coral Photoquadrats"
+type: software
+authors:
+  - family-names: Cordero
+    given-names: Elvin
+    orcid: "https://orcid.org/0009-0003-8025-283X"
+version: 0.1.0
+date-released: 2026-06-19
+doi: "10.32614/CRAN.package.pointcoral"
+license: MIT
+repository-code: "https://github.com/el-cordero/pointcoral"
+url: "https://el-cordero.github.io/pointcoral/"
+references:
+  - type: article
+    authors:
+      - family-names: Kohler
+        given-names: Kevin E.
+      - family-names: Gill
+        given-names: Shaun M.
+    title: "Coral Point Count with Excel extensions (CPCe): A Visual Basic program for the determination of coral and substrate coverage using random point count methodology"
+    journal: "Computers & Geosciences"
+    year: 2006
+    volume: 32
+    issue: 9
+    start: 1259
+    end: 1269
+    doi: "10.1016/j.cageo.2005.11.009"

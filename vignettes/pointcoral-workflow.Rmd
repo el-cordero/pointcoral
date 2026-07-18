@@ -1,95 +1,154 @@
 ---
-title: "pointcoral workflow"
+title: "Get started with pointcoral"
+description: "A complete local workflow from bundled CPCe annotations and images to validated cover summaries, QC overlays, and ML-ready point labels."
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{pointcoral workflow}
+  %\VignetteIndexEntry{Get started with pointcoral}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r, include = FALSE}
+```{r setup, include=FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>",
+  fig.bg = "white",
+  dev.args = list(bg = "white"),
+  fig.width = 8,
+  fig.height = 5,
+  dpi = 120,
+  fig.align = "center"
 )
 ```
 
-`pointcoral` turns local CPCe point-count annotations into ecological summaries,
-QC overlays, and ML-ready datasets. The package is fully local and does not
-require MERMAID, CoralNet, or any closed platform.
+`pointcoral` turns local Coral Point Count with Excel extensions (CPCe)
+annotations into reviewable point tables, point-count cover summaries,
+quality-control (QC) overlays, and machine-learning-ready data. This guide uses
+only small files installed with the package and writes temporary outputs.
 
-The key label convention is that `raw_label` remains the original short CPCe
-label from the `.cpc` file. You can run the bare workflow directly from those
-raw labels. A crosswalk is optional when you want to populate `full_label`,
-`clean_label`, `label_class`, `major_category`, `ml_class`, and project-specific
-`class_id` values. The bundled example maps short labels such as `SPO`, `CALG`,
-and `PEFL` to full labels such as `Sponge`, `Coralline algae`, and
-`Peyssonnelia flavescens`, and to major classes such as `SPONGES (S)`,
-`CORALLINE ALGAE (CA)`, and `PEYSSONNELIACEAE`.
+The workflow is appropriate for analysts who have CPCe point annotations and
+the corresponding photoquadrat images. It does not replace project sampling
+design, taxonomic review, or image-quality assessment.
 
-```{r setup}
+```{r load}
 library(pointcoral)
-library(dplyr)
 ```
 
-## 1. Import CPCe data
+## Understand the bundled example
+
+The example contains two `.cpc` files and two JPEGs. Each CPCe file has 100
+annotated points. A separate example crosswalk maps the observed short codes to
+full labels and broader benthic categories.
+
+```{r locate-data}
+example_dir <- system.file("extdata", package = "pointcoral")
+basename(list.files(example_dir))
+```
+
+The sample files are for software demonstration. Their two images do not
+represent a reef, site, monitoring period, or population by themselves.
+
+## 1. Import and match images
+
+`read_cpce_folder()` imports recognizable point files. With `image_root`, it
+also matches image basenames and reads image dimensions.
 
 ```{r import}
-example_dir <- system.file("extdata", package = "pointcoral")
-
 points_raw <- read_cpce_folder(
   path = example_dir,
   image_root = example_dir,
   recursive = FALSE
 )
 
-dplyr::glimpse(points_raw)
+data.frame(
+  points = nrow(points_raw),
+  images = length(unique(points_raw$image_id)),
+  raw_labels = length(unique(points_raw$raw_label))
+)
 ```
 
-## 2. Match images
-
-`read_cpce_folder()` can match images during import when `image_root` is
-provided. You can also match later:
-
-```{r match}
-points_raw <- match_images(points_raw, image_root = example_dir)
+```{r point-preview}
+knitr::kable(
+  head(points_raw[c(
+    "image_id", "point_id", "cpce_x", "cpce_y", "x_px", "y_px",
+    "raw_label"
+  )], 6),
+  caption = "Imported CPCe points with original and image-pixel coordinates."
+)
 ```
 
-## 3. Bare workflow from raw CPCe labels
+### Coordinate requirement
 
-The `.cpc` files already contain point labels. In this bare workflow,
-`summarize_images()` and `make_ml_points()` fall back to `raw_label` because
-`major_category` and `ml_class` have not been populated by a crosswalk.
+`cpce_x` and `cpce_y` retain the CPCe coordinate space. `x_px` and `y_px` are
+integer pixel coordinates in the matched image. The tested `.cpc` parser uses
+the maximum region-of-interest coordinates as the CPCe width and height, then
+scales each axis proportionally to image width and height.
 
-```{r bare}
+This conversion assumes that the CPCe annotation display and stored image have
+the same orientation and uncropped spatial extent. Rotated, mirrored, cropped,
+or otherwise transformed images need project-specific handling. Always inspect
+an overlay before analysis or training export.
+
+## 2. Validate the imported points
+
+```{r validate-raw}
 validate_points(points_raw)
-summarize_images(points_raw)
-
-points_split_raw <- split_ml_points(points_raw, split_by = "image", seed = 1)
-ml_points_raw <- make_ml_points(points_split_raw)
-
-dplyr::count(ml_points_raw, label, class_id, sort = TRUE)
 ```
 
-## 4. Optional: read a crosswalk table
+Validation detects missing required fields, labels and coordinates, duplicate
+point IDs within images, out-of-bounds pixel coordinates, missing files, and
+missing image dimensions. An `ok` result means those checks passed; it is not a
+taxonomic or sampling-design validation.
+
+## 3. Summarize the original CPCe labels
+
+A crosswalk is optional. The raw CPCe codes can be summarized immediately.
+
+```{r raw-cover}
+raw_cover <- summarize_images(points_raw, class_col = "raw_label")
+knitr::kable(
+  head(raw_cover, 8),
+  digits = 1,
+  caption = "First image-level point-count summaries using original CPCe labels."
+)
+```
+
+Within each image, `percent` is `100 * n / n_points`. It is the proportion of
+retained sampled points assigned to a label. Whether that proportion supports a
+site- or program-level cover estimate depends on the project's image selection,
+point placement, replication, exclusions, weights, and aggregation plan.
+
+## 4. Review and apply a project crosswalk
+
+The bundled crosswalk demonstrates the expected structure. It is not a
+universal label set. Review raw codes, species/type names, broad categories,
+inclusion flags, and class IDs against the CPCe codefile and project protocol.
 
 ```{r crosswalk}
-crosswalk_path <- system.file(
-  "extdata", "pointcoral_example_crosswalk.csv",
-  package = "pointcoral"
+crosswalk_path <- file.path(
+  example_dir, "pointcoral_example_crosswalk.csv"
 )
-
 crosswalk <- read_label_crosswalk(crosswalk_path)
-dplyr::glimpse(crosswalk)
+
+knitr::kable(
+  head(crosswalk[c(
+    "raw_code", "full_label", "major_category", "class_id"
+  )], 8),
+  caption = "Example crosswalk fields."
+)
 ```
 
-## 5. Optional: check unmapped labels
-
-```{r check}
-check_crosswalk(points_raw, crosswalk)
+```{r check-crosswalk}
+crosswalk_report <- check_crosswalk(points_raw, crosswalk)
+knitr::kable(
+  as.data.frame(table(crosswalk_report$issue_type)),
+  col.names = c("Issue", "Rows"),
+  caption = "Crosswalk checks for the two bundled images."
+)
 ```
 
-## 6. Optional: apply label standardization
+Mappings unused by these two images are informational. Missing mappings in the
+point data, duplicate keys, or missing IDs require review before standardizing.
 
 ```{r standardize}
 points_clean <- standardize_labels(
@@ -98,91 +157,185 @@ points_clean <- standardize_labels(
   unknown_action = "warn"
 )
 
-points_clean |>
-  count(raw_label, full_label, label_class, major_category, class_id, sort = TRUE)
+knitr::kable(
+  head(points_clean[c(
+    "raw_label", "full_label", "major_category", "ml_class", "class_id"
+  )], 8),
+  caption = "Original labels retained beside standardized fields."
+)
 ```
 
-## 7. Validate standardized points
+Unmapped labels are never silently discarded. Use `unknown_action = "error"`
+for a strict release workflow.
 
-```{r validate}
-validate_points(points_clean)
+## 5. Calculate standardized cover summaries
+
+```{r summaries}
+major_cover <- summarize_images(
+  points_clean,
+  class_col = "major_category"
+)
+
+knitr::kable(
+  major_cover,
+  digits = 1,
+  caption = "Major-category point-count cover by bundled image."
+)
 ```
 
-## 8. Create standardized ecological summary tables
+```{r cover-plot, fig.alt="Horizontal bar chart of mean point-count cover across two bundled photoquadrats. Sand pavement and rubble is highest, followed by sponges, coralline algae, Peyssonneliaceae, macroalgae, and coral."}
+overall_cover <- summarize_points(
+  points_clean,
+  by = character(),
+  class_col = "major_category"
+)
+overall_cover <- overall_cover[order(overall_cover$percent), ]
 
-```{r summarize}
-summarize_images(points_clean, class_col = "major_category")
-summarize_transects(points_clean, class_col = "major_category")
-summarize_sites(points_clean, class_col = "major_category")
-
-summarize_images(points_clean, class_col = "clean_label")
+old_par <- par(mar = c(5, 12, 3, 1))
+barplot(
+  overall_cover$percent,
+  names.arg = overall_cover$major_category,
+  horiz = TRUE,
+  las = 1,
+  col = "#168B91",
+  border = NA,
+  xlab = "Percent of bundled CPCe points",
+  main = "Bundled example point-count summary"
+)
+par(old_par)
 ```
 
-## 9. Create ML point-label CSVs
+Do not treat this pooled demonstration as a design-based reef estimate. Choose
+the grouping and any subsequent aggregation to match the survey design.
 
-```{r ml}
-points_split <- split_ml_points(points_clean, split_by = "image", seed = 1)
+## 6. Create and inspect a QC overlay
+
+The example below writes one overlay to a temporary directory and returns a
+manifest. Open the file in an image viewer during a real project.
+
+```{r qc-output}
+qc_dir <- tempfile("pointcoral-qc-")
+qc_manifest <- write_qc_overlays(
+  points_clean[points_clean$image_id == unique(points_clean$image_id)[1], ],
+  image_root = example_dir,
+  out_dir = qc_dir,
+  label_col = "raw_label"
+)
+
+knitr::kable(
+  transform(qc_manifest, overlay_file = basename(overlay_path))[
+    c("image_id", "n_points", "overlay_file")
+  ],
+  caption = "QC overlay written from installed sample data."
+)
+```
+
+Review edge points, known structures, image orientation, and label placement.
+An overlay can reveal a coordinate mismatch but cannot prove that every label
+is ecologically correct.
+
+## 7. Prepare leakage-aware ML point labels
+
+Split at the highest level needed to keep related observations together.
+Splitting individual points from the same image across training and test sets
+would leak nearly identical image context.
+
+```{r ml-split}
+points_split <- split_ml_points(
+  points_clean,
+  split_by = "image",
+  train = 0.5,
+  val = 0,
+  test = 0.5,
+  seed = 10
+)
 ml_points <- make_ml_points(points_split, class_col = "ml_class")
 
-out_dir <- tempfile("pointcoral-vignette-")
-dir.create(out_dir)
-
-write_ml_points_csv(ml_points, file.path(out_dir, "ml"))
-```
-
-## 10. Extract point patches
-
-Patch extraction writes image crops to disk. For large projects, run this in a
-dedicated output folder.
-
-```{r patches, eval = FALSE}
-extract_point_patches(
-  points_split,
-  image_root = example_dir,
-  out_dir = file.path(out_dir, "patches"),
-  patch_size = 224,
-  class_col = "ml_class",
-  edge = "skip"
+knitr::kable(
+  as.data.frame(table(ml_points$split)),
+  col.names = c("Split", "Points"),
+  caption = "Deterministic image-level split for two bundled images."
 )
 ```
 
-## 11. Create sparse masks
+```{r leakage-check}
+unique(ml_points[c("image_id", "split")])
+```
 
-Sparse masks are weak labels. Pixels outside point disks remain `ignore_index`
-by default.
+For repeated transects, sites, or dates, image-level separation may still be
+too weak. Choose the grouping that reflects the intended prediction task.
 
-```{r masks, eval = FALSE}
-make_sparse_masks(
-  points_split,
+## 8. Understand patches and sparse masks
+
+Point-centered patches inherit the CPCe point label but can include mixed
+benthic content. Patch size is measured in pixels and should be justified for
+the image resolution and task.
+
+Sparse masks write a class ID only inside a disk around each point. `radius` is
+in pixels. All other pixels default to `ignore_index = 255`; they are unknown,
+not background. Class IDs therefore must not use the ignore value and should
+fit the 0–254 range used by the current PNG encoding.
+
+```{r sparse-mask}
+mask_dir <- tempfile("pointcoral-mask-")
+mask_manifest <- make_sparse_masks(
+  points_split[1:5, ],
   image_root = example_dir,
-  out_dir = file.path(out_dir, "sparse_masks"),
-  radius = 3
+  out_dir = mask_dir,
+  radius = 2,
+  class_col = "ml_class"
+)
+
+knitr::kable(
+  transform(mask_manifest, mask_file = basename(mask_path))[
+    c("image_id", "image_width", "image_height", "n_points", "mask_file")
+  ],
+  caption = "Sparse weak-label mask manifest."
 )
 ```
 
-## 12. Create QC overlays
+These masks are weak supervision. They are not dense human-verified
+segmentation labels and do not imply that nearby unlabeled pixels share or do
+not share the point class.
 
-```{r qc, eval = FALSE}
-write_qc_overlays(
-  points_split,
-  image_root = example_dir,
-  out_dir = file.path(out_dir, "qc"),
-  label_col = "ml_class"
-)
-```
+## 9. Run the complete writer
 
-## Full workflow wrapper
+The wrapper can reproduce the same stages and write an organized dataset. The
+example disables heavier image outputs to keep the vignette fast.
 
-```{r wrapper, eval = FALSE}
-run_pointcoral(
+```{r wrapper}
+output_dir <- tempfile("pointcoral-workflow-")
+result <- run_pointcoral(
   cpce_dir = example_dir,
   image_root = example_dir,
-  out_dir = file.path(out_dir, "outputs"),
-  make_patches = TRUE,
-  make_masks = TRUE,
-  make_qc = TRUE
+  out_dir = output_dir,
+  crosswalk_path = crosswalk_path,
+  recursive = FALSE,
+  make_patches = FALSE,
+  make_masks = FALSE,
+  make_qc = FALSE
+)
+
+data.frame(
+  class_column = result$class_col,
+  point_rows = nrow(result$points_clean),
+  ml_rows = nrow(result$ml_points),
+  validation = paste(result$validation_report$check, collapse = ", ")
 )
 ```
 
-Add `crosswalk_path = crosswalk_path` to that wrapper call when you want the
-standardized labels and major classes shown above.
+## Before using project results
+
+1. Confirm that the CPCe file variant is parsed correctly.
+2. Resolve duplicate image basenames and stale embedded paths.
+3. Verify image orientation, extent, dimensions, and point overlays.
+4. Review every observed raw label and the project crosswalk.
+5. Define exclusions, grouping, replication, and percent-cover aggregation from
+   the sampling design.
+6. Define leakage boundaries and an external evaluation plan for ML work.
+7. Record package version, crosswalk version, parameters, and source files.
+
+Continue with the [worked examples](examples.html),
+[coordinate and QC guide](coordinates-and-qc.html),
+[ML outputs guide](machine-learning-outputs.html), and
+[interpretation and limitations](interpretation-limitations.html).

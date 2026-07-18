@@ -1,0 +1,135 @@
+---
+title: "Machine-learning outputs and leakage-aware splits"
+description: "Prepare point labels, image-level splits, patches, and sparse masks while keeping label semantics and evaluation boundaries explicit."
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Machine-learning outputs and leakage-aware splits}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+`pointcoral` prepares local files for downstream ML work. It does not train,
+validate, select, or deploy a model.
+
+```{r prepare}
+library(pointcoral)
+
+example_dir <- system.file("extdata", package = "pointcoral")
+points <- read_cpce_folder(example_dir, image_root = example_dir, recursive = FALSE)
+crosswalk <- read_label_crosswalk(file.path(
+  example_dir, "pointcoral_example_crosswalk.csv"
+))
+points <- standardize_labels(points, crosswalk)
+```
+
+## Choose the target label deliberately
+
+`raw_label`, `full_label`, `major_category`, and `ml_class` answer different
+questions. A broader ML class can improve sample counts while discarding
+taxonomic detail. The class scheme should be fixed and versioned before model
+evaluation. `include_in_ml` can exclude explicitly reviewed crosswalk rows.
+
+```{r class-balance}
+qc_label_summary(points, label_col = "ml_class", rare_threshold = 5L) |>
+  head(12)
+```
+
+## Split related observations together
+
+Points from one photo share pixels, lighting, camera properties, and scene
+context. Never randomly split individual points when the evaluation claim is
+about unseen images.
+
+```{r split}
+split_points <- split_ml_points(
+  points,
+  split_by = "image",
+  train = 0.5,
+  val = 0,
+  test = 0.5,
+  seed = 10
+)
+
+unique(split_points[c("image_id", "split")])
+```
+
+For monitoring data, image-level separation may still leak transect, site,
+date, observer, or camera information. Use `split_by = "transect"` or
+`split_by = "site"` when supported by populated metadata, or construct a
+project-specific external split when those boundaries are not sufficient.
+
+## Write point-label tables
+
+```{r labels}
+ml_points <- make_ml_points(split_points, class_col = "ml_class")
+knitr::kable(
+  head(ml_points[c(
+    "image_id", "x_px", "y_px", "label", "class_id", "split"
+  )], 8),
+  caption = "ML-ready rows retain point locations and split membership."
+)
+
+labels_dir <- tempfile("pointcoral-labels-")
+label_paths <- write_ml_points_csv(ml_points, labels_dir)
+basename(unlist(label_paths))
+```
+
+## Extract patches
+
+`patch_size` is a width and height in pixels. It controls visual context, not a
+constant physical area unless image scale is constant.
+
+```{r patches}
+patch_dir <- tempfile("pointcoral-patches-")
+patch_manifest <- extract_point_patches(
+  split_points[1:3, ],
+  image_root = example_dir,
+  out_dir = patch_dir,
+  patch_size = 64,
+  class_col = "ml_class",
+  edge = "pad"
+)
+
+transform(
+  patch_manifest,
+  patch_file = basename(patch_path)
+)[c("image_id", "point_id", "label", "split", "patch_file")]
+```
+
+The center-point label is a weak label for the crop. Mixed benthos, occlusion,
+blur, annotation ambiguity, and scale variation remain possible.
+
+## Create sparse masks
+
+```{r masks}
+mask_dir <- tempfile("pointcoral-masks-")
+mask_manifest <- make_sparse_masks(
+  split_points[1:5, ],
+  image_root = example_dir,
+  out_dir = mask_dir,
+  radius = 2,
+  ignore_index = 255,
+  class_col = "ml_class"
+)
+
+transform(mask_manifest, mask_file = basename(mask_path))[
+  c("image_id", "image_width", "image_height", "n_points", "mask_file")
+]
+```
+
+Only point disks receive class IDs. `ignore_index = 255` means loss functions
+should ignore other pixels; it does not mean background. The current PNG
+encoding supports class values below 255, so class IDs must not collide with
+the ignore value.
+
+## Interpretation boundary
+
+Package outputs make provenance and organization easier. They do not establish
+that a class ontology is learnable, splits are independent, labels are correct,
+metrics generalize to another survey, or model predictions are ecologically
+valid. Document the intended prediction unit, leakage controls, class version,
+image preprocessing, external test set, and uncertainty analysis separately.

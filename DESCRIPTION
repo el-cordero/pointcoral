@@ -2,7 +2,9 @@ Package: pointcoral
 Title: Local Point-Count Processing for Coral Photoquadrats
 Version: 0.1.0
 Authors@R:
-    person("Elvin", "Cordero", email = "elvin.cordero@seamountgeo.com", role = c("aut", "cre"))
+    person("Elvin", "Cordero", email = "elvin.cordero@seamountgeo.com",
+           role = c("aut", "cre"),
+           comment = c(ORCID = "0009-0003-8025-283X"))
 Description: Imports Coral Point Count with Excel extensions (CPCe)
     point-count annotations and related exported tables, standardizes labels
     with a user-supplied crosswalk, creates ecological cover summaries, writes
@@ -14,9 +16,11 @@ Description: Imports Coral Point Count with Excel extensions (CPCe)
     Basic program for the determination of coral and substrate coverage using
     random point count methodology" <doi:10.1016/j.cageo.2005.11.009>.
 License: MIT + file LICENSE
-URL: https://github.com/el-cordero/pointcoral
+URL: https://el-cordero.github.io/pointcoral/,
+    https://github.com/el-cordero/pointcoral
 BugReports: https://github.com/el-cordero/pointcoral/issues
 Encoding: UTF-8
+Language: en-US
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
 Depends:
@@ -46,3 +50,5 @@ Suggests:
     writexl
 VignetteBuilder: knitr
 Config/testthat/edition: 3
+Config/Needs/website: pkgdown
+Config/Needs/coverage: covr

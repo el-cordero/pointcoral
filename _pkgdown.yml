@@ -1,0 +1,151 @@
+url: https://el-cordero.github.io/pointcoral/
+
+template:
+  bootstrap: 5
+  bootswatch: flatly
+  bslib:
+    primary: "#073B68"
+    link-color: "#086A75"
+    navbar-dark-color: "#FFFFFF"
+  opengraph:
+    image:
+      src: man/figures/potential-ml-outputs.png
+      alt: >
+        Coral photoquadrat shown as labeled CPCe points, a benthic prediction
+        mask, and a colored prediction overlay.
+
+home:
+  title: "pointcoral: local CPCe and coral photoquadrat workflows"
+  description: >
+    Import local CPCe point annotations, validate coordinates and labels,
+    calculate point-count cover summaries, review overlays, and prepare
+    machine-learning datasets without a cloud service.
+
+repo:
+  branch: main
+  url:
+    home: https://github.com/el-cordero/pointcoral/
+    issue: https://github.com/el-cordero/pointcoral/issues/
+
+navbar:
+  bg: primary
+  type: dark
+  structure:
+    left: [home, getstarted, examples, articles, reference, news]
+    right: [search, cran, github, lightswitch]
+  components:
+    home:
+      text: Home
+      href: index.html
+    getstarted:
+      text: Get started
+      href: articles/pointcoral-workflow.html
+    examples:
+      text: Examples
+      href: articles/examples.html
+    articles:
+      text: Articles
+      menu:
+        - text: Core workflow
+        - text: Get started with bundled data
+          href: articles/pointcoral-workflow.html
+        - text: Worked examples and outputs
+          href: articles/examples.html
+        - text: Data quality and interpretation
+        - text: Coordinates and quality control
+          href: articles/coordinates-and-qc.html
+        - text: ML outputs and leakage-aware splits
+          href: articles/machine-learning-outputs.html
+        - text: Assumptions and limitations
+          href: articles/interpretation-limitations.html
+        - text: Project information
+        - text: Citation
+          href: articles/citation.html
+        - text: Browse all articles
+          href: articles/index.html
+    reference:
+      text: Reference
+      href: reference/index.html
+    news:
+      text: News
+      href: news/index.html
+    cran:
+      text: CRAN
+      href: https://CRAN.R-project.org/package=pointcoral
+      target: _blank
+
+articles:
+  - title: Start here
+    contents:
+      - pointcoral-workflow
+  - title: Examples
+    contents:
+      - articles/examples
+      - articles/coordinates-and-qc
+      - articles/machine-learning-outputs
+  - title: Scientific guidance
+    contents:
+      - articles/interpretation-limitations
+      - articles/citation
+
+reference:
+  - title: Import CPCe annotations and match images
+    desc: Read supported CPCe files and tables, match images, and convert coordinates.
+    contents:
+      - read_cpce_file
+      - read_cpce_export
+      - read_cpce_output_raw_tabs
+      - read_cpce_folder
+      - match_images
+      - convert_cpce_coords
+  - title: Standardize labels and classes
+    desc: Read, check, and apply project-specific label crosswalks.
+    contents:
+      - read_label_crosswalk
+      - check_crosswalk
+      - standardize_labels
+      - make_class_lookup
+  - title: Validate and visually review points
+    desc: Detect table problems and create image-based quality-control products.
+    contents:
+      - validate_points
+      - qc_label_summary
+      - plot_points_on_image
+      - write_qc_overlays
+  - title: Calculate and write point-count summaries
+    desc: Summarize observed point labels at image, transect, site, or custom levels.
+    contents:
+      - summarize_points
+      - summarize_images
+      - summarize_transects
+      - summarize_sites
+      - write_summary_tables
+  - title: Prepare machine-learning datasets
+    desc: Split, export, crop, and encode point annotations for local downstream workflows.
+    contents:
+      - split_ml_points
+      - make_ml_points
+      - write_ml_points_csv
+      - extract_point_patches
+      - make_sparse_masks
+      - export_coralnet_points
+      - export_yolo_classification
+      - export_segformer_sparse
+  - title: Run end-to-end workflows
+    desc: Coordinate the common import, summary, QC, and export steps.
+    contents:
+      - write_pointcoral_dataset
+      - run_pointcoral
+  - title: Package overview
+    contents:
+      - pointcoral-package
+
+footer:
+  structure:
+    left: developed_by
+    right: [cran, citation, support, github, built_with]
+  components:
+    cran: '<a href="https://CRAN.R-project.org/package=pointcoral">CRAN</a>'
+    citation: '<a href="https://el-cordero.github.io/pointcoral/articles/citation.html">Citation</a>'
+    support: '<a href="https://github.com/el-cordero/pointcoral/blob/main/SUPPORT.md">Support</a>'
+    github: '<a href="https://github.com/el-cordero/pointcoral">GitHub</a>'

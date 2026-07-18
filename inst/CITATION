@@ -1,0 +1,15 @@
+citHeader("To cite pointcoral in publications, use:")
+
+bibentry(
+  bibtype = "Manual",
+  title = "pointcoral: Local Point-Count Processing for Coral Photoquadrats",
+  author = person("Elvin", "Cordero"),
+  year = "2026",
+  note = "R package version 0.1.0",
+  doi = "10.32614/CRAN.package.pointcoral",
+  url = "https://el-cordero.github.io/pointcoral/"
+)
+
+citFooter(
+  "When CPCe software or its random point-count method is used, also cite Kohler and Gill (2006), doi:10.1016/j.cageo.2005.11.009."
+)

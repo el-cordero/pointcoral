@@ -6,6 +6,10 @@
 *.Rcheck/
 *.tar.gz
 docs/
+doc/
+Meta/
 outputs/
 tmp/
 rstudio-workflows/outputs/
+/doc/
+/Meta/

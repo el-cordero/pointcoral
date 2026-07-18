@@ -10,3 +10,9 @@
   sheets ending in `_raw`, adding image names from sheet names, preserving CPCe
   point order with `point_index`, preserving CPCe group codes, and adding full
   `major_category` values.
+- Added a Bootstrap 5 pkgdown website with a beginner route, grouped function
+  reference, workflow examples, scientific interpretation guidance, citation
+  information, and accessible coral-themed styling.
+- Added source-controlled README generation, contributor and support policies,
+  cross-platform R CMD check, pkgdown deployment, and optional OIDC Codecov
+  workflows.

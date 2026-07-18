@@ -4,24 +4,34 @@
 \name{pointcoral-package}
 \alias{pointcoral}
 \alias{pointcoral-package}
-\title{pointcoral:Point-Count Processing for Coral Photoquadrats}
+\title{pointcoral: Point-Count Processing for Coral Photoquadrats}
 \description{
-pointcoral imports Coral Point Count with Excel extensions (CPCe) point-count
-annotations, uses the raw labels already stored in CPCe files for bare
-workflows, optionally standardizes labels with user-supplied crosswalks,
-writes ecological summaries, creates quality-control (QC) overlays, and
-exports local machine-learning-ready datasets.
+Imports Coral Point Count with Excel extensions (CPCe) point annotations,
+matches them to local photoquadrat images, validates labels and coordinates,
+and computes point-count percent-cover summaries. Optional crosswalks map
+project-specific CPCe codes to full labels, ecological categories, and
+machine-learning classes. Quality-control overlays, point-centered patches,
+sparse weak-label masks, and leakage-aware dataset splits support review and
+downstream local model development.
+}
+\details{
+The package preserves original CPCe labels and coordinates. Users remain
+responsible for verifying CPCe file variants, image matching, coordinate
+conversion, crosswalk semantics, sampling design, and the interpretation of
+point-count estimates. Sparse masks label only neighborhoods around sampled
+points and are not dense benthic annotations.
 }
 \seealso{
 Useful links:
 \itemize{
+  \item \url{https://el-cordero.github.io/pointcoral/}
   \item \url{https://github.com/el-cordero/pointcoral}
   \item Report bugs at \url{https://github.com/el-cordero/pointcoral/issues}
 }
 
 }
 \author{
-\strong{Maintainer}: Elvin Cordero \email{elvin.cordero@seamountgeo.com}
+\strong{Maintainer}: Elvin Cordero \email{elvin.cordero@seamountgeo.com} (\href{https://orcid.org/0009-0003-8025-283X}{ORCID})
 
 }
 \keyword{internal}

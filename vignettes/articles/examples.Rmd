@@ -1,0 +1,139 @@
+---
+title: "Worked examples and output gallery"
+description: "Short reproducible examples of point tables, percent-cover summaries, QC overlays, patches, sparse masks, and CPCe raw workbook tabs."
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Worked examples and output gallery}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE, comment = "#>", fig.bg = "white",
+  dev.args = list(bg = "white"), fig.width = 8, fig.height = 5,
+  dpi = 120, fig.align = "center"
+)
+```
+
+These examples use files installed with `pointcoral`, require no internet
+connection, and write only to temporary directories.
+
+```{r prepare}
+library(pointcoral)
+
+example_dir <- system.file("extdata", package = "pointcoral")
+points <- read_cpce_folder(example_dir, image_root = example_dir, recursive = FALSE)
+crosswalk <- read_label_crosswalk(file.path(
+  example_dir, "pointcoral_example_crosswalk.csv"
+))
+points_clean <- standardize_labels(points, crosswalk)
+```
+
+## Tidy point rows
+
+Original CPCe fields remain beside standardized fields. Pixel coordinates are
+in the matched image's pixel coordinate system.
+
+```{r tidy-points}
+knitr::kable(
+  head(points_clean[c(
+    "image_id", "point_id", "x_px", "y_px", "raw_label",
+    "full_label", "major_category", "class_id"
+  )], 10),
+  caption = "First ten bundled point annotations."
+)
+```
+
+## Point-count cover
+
+```{r cover-table}
+cover <- summarize_points(
+  points_clean,
+  by = character(),
+  class_col = "major_category"
+)
+knitr::kable(cover, digits = 1, caption = "Pooled bundled-example point counts.")
+```
+
+<figure>
+  <img src="../reference/figures/sample-cover-summary.png" alt="Horizontal bar chart of mean point-count cover across two bundled photoquadrats, led by sand pavement and rubble, then sponges." />
+</figure>
+
+The plotted percentages are calculated from 200 demonstration points. Pooling
+is shown to illustrate output, not to prescribe analysis across sampling units.
+
+## Image overlay
+
+<figure>
+  <img src="../reference/figures/sample-qc-overlay.jpg" alt="Reef photoquadrat with CPCe point circles and short label codes overlaid across the image." />
+</figure>
+
+Generate project overlays with `write_qc_overlays()`. Inspect image orientation,
+edge points, recognizable benthic features, and the correspondence between
+point positions and labels.
+
+## Point-centered patches
+
+<figure>
+  <img src="../reference/figures/sample-patch-contact-sheet.jpg" alt="Twelve square reef image patches centered on CPCe points and labeled with example benthic classes." />
+</figure>
+
+Patches are square pixel crops. Near an image edge, `edge = "skip"` omits a
+crop and `edge = "pad"` adds black pixels. A patch can contain several benthic
+types even though its target is inherited from the center point.
+
+## Sparse weak-label masks
+
+<figure>
+  <img src="../reference/figures/sample-sparse-mask-preview.png" alt="Sparse mask preview with small colored disks at CPCe point locations and pale gray ignore pixels elsewhere." />
+</figure>
+
+The colored disks encode point classes. Pale pixels use `ignore_index`; they
+are unknown rather than observed background.
+
+## CPCe output workbook raw tabs
+
+`read_cpce_output_raw_tabs()` handles workbooks with one sheet per image ending
+in `_raw`. It keeps within-sheet order as `point_index` and skips
+`deep_cres_..._raw` sheets by default because they use another layout.
+
+```{r raw-tabs}
+raw_tabs <- read_cpce_output_raw_tabs(file.path(
+  example_dir, "pointcoral_example_cpce_output_raw_tabs.xlsx"
+))
+knitr::kable(
+  raw_tabs[c(
+    "image_name", "point_index", "raw_data",
+    "cpce_major_category", "major_category"
+  )],
+  caption = "Rows from the bundled demonstration workbook."
+)
+```
+
+For project labels, pass a reviewed crosswalk explicitly. The built-in example
+mapping should not be assumed to match another CPCe codefile.
+
+## Complete output folder
+
+```{r complete-output}
+out_dir <- tempfile("pointcoral-example-")
+result <- run_pointcoral(
+  cpce_dir = example_dir,
+  image_root = example_dir,
+  out_dir = out_dir,
+  crosswalk_path = file.path(example_dir, "pointcoral_example_crosswalk.csv"),
+  recursive = FALSE,
+  make_patches = FALSE,
+  make_masks = FALSE,
+  make_qc = FALSE
+)
+
+data.frame(
+  output = names(result$paths),
+  file = basename(unlist(result$paths)),
+  row.names = NULL
+)
+```
+
+See [Get started](pointcoral-workflow.html) for the reasoning behind each step.

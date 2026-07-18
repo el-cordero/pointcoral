@@ -1,0 +1,113 @@
+---
+title: "Coordinates, image matching, and quality control"
+description: "How pointcoral handles CPCe and pixel coordinates, image basenames, validation checks, and visual overlays."
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Coordinates, image matching, and quality control}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+Coordinate errors can leave percent counts numerically unchanged while making
+the associated image evidence and ML crops wrong. Treat visual QC as a required
+handoff between import and interpretation.
+
+```{r load}
+library(pointcoral)
+```
+
+## Two coordinate spaces
+
+Imported `.cpc` rows can contain:
+
+- `cpce_x`, `cpce_y`: original CPCe display/region coordinates;
+- `cpce_width`, `cpce_height`: the coordinate-space dimensions used for
+  conversion;
+- `x_px`, `y_px`: integer coordinates in the matched image; and
+- `image_width`, `image_height`: image dimensions in pixels.
+
+`convert_cpce_coords()` uses proportional scaling independently for each axis.
+
+```{r conversion}
+example_points <- data.frame(
+  cpce_x = c(0, 25, 50, 100),
+  cpce_y = c(0, 10, 25, 50)
+)
+
+convert_cpce_coords(
+  example_points,
+  cpce_width = 100,
+  cpce_height = 50,
+  image_width = 1000,
+  image_height = 500
+)
+```
+
+The function does not rotate, mirror, crop, georeference, or correct lens
+distortion. The current `.cpc` parser uses ROI maxima as the coordinate-space
+dimensions when available because that geometry fits the bundled fixtures.
+Other CPCe configurations require verification.
+
+## Basename image matching
+
+`match_images()` searches under `image_root` and matches `image_file` by
+basename. This helps when a `.cpc` file contains an old Windows path but the
+same image now lives on macOS or Linux.
+
+Basenames must be unique. If two directories contain `transect_01.jpg`, the
+first match is used with a warning. Rename files or separate projects before a
+release analysis; a successful basename match does not prove image identity.
+
+## Table validation
+
+```{r validation}
+example_dir <- system.file("extdata", package = "pointcoral")
+points <- read_cpce_folder(example_dir, image_root = example_dir, recursive = FALSE)
+validate_points(points)
+```
+
+To see the report structure, introduce deterministic problems in a copy:
+
+```{r validation-problems}
+bad <- points
+bad$raw_label[1] <- NA_character_
+bad$x_px[2] <- bad$image_width[2] + 50L
+validate_points(bad)
+```
+
+Validation reports issues; it does not change the input or decide whether a
+row should be excluded.
+
+## Visual overlay
+
+```{r overlay, eval=FALSE}
+write_qc_overlays(
+  points,
+  image_root = example_dir,
+  out_dir = "project_outputs/qc",
+  label_col = "raw_label"
+)
+```
+
+Review at least:
+
+1. points near all four image edges;
+2. recognizable structures and the expected image orientation;
+3. labels around mixed or ambiguous benthic cover;
+4. out-of-frame, repeated, or unexpectedly clustered points; and
+5. the exact source image and CPCe file identity.
+
+An overlay is evidence that points appear in plausible locations. It cannot
+confirm sampling randomness, taxonomic correctness, or ecological
+representativeness.
+
+## Units and conventions
+
+Coordinates and patch/mask radii are in pixels, not centimetres or metres.
+Physical scale can differ among cameras, image crops, and survey protocols.
+Record the relationship between image pixels and field scale outside the
+package when physical-area interpretation matters.
